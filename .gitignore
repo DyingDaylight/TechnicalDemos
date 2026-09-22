@@ -1,0 +1,113 @@
+# ============================================================
+# Unity
+# ============================================================
+
+# Unity generated folders
+**/[Ll]ibrary/
+**/[Tt]emp/
+**/[Oo]bj/
+**/[Bb]uild/
+**/[Bb]uilds/
+**/[Ll]ogs/
+**/[Uu]ser[Ss]ettings/
+**/[Mm]emoryCaptures/
+**/[Rr]ecordings/
+
+# Unity generated files
+**/*.csproj
+**/*.sln
+**/*.suo
+**/*.tmp
+**/*.user
+**/*.userprefs
+**/*.pidb
+**/*.booproj
+**/*.svd
+**/*.pdb
+**/*.mdb
+**/*.opendb
+**/*.VC.db
+
+# Unity crash reports
+**/sysinfo.txt
+
+# Unity Asset Store tools
+**/Assets/AssetStoreTools*
+
+# Rider / JetBrains
+**/.idea/
+**/*.sln.iml
+
+
+# ============================================================
+# Godot
+# ============================================================
+
+# Godot 4 generated data
+**/.godot/
+
+# Godot Mono / C# generated files
+**/.mono/
+
+# Exported builds
+**/export/
+**/exports/
+
+
+# ============================================================
+# LibGDX / Gradle
+# ============================================================
+
+# Gradle
+**/.gradle/
+**/gradle-app.setting
+**/.gradletasknamecache
+
+# Gradle build output
+**/build/
+
+# LibGDX generated/local files
+**/local.properties
+
+# Eclipse
+**/.classpath
+**/.project
+**/.settings/
+
+# IntelliJ / Android Studio
+**/*.iml
+
+
+# ============================================================
+# Visual Studio / VS Code
+# ============================================================
+
+**/.vs/
+**/.vscode/
+
+
+# ============================================================
+# Operating system
+# ============================================================
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+
+# ============================================================
+# Misc
+# ============================================================
+
+*.log
+*.bak
+*.swp
+*.swo
+*~
