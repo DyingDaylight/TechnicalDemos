@@ -3,6 +3,7 @@
     public enum MazeAlgorithm
     {
         RecursiveBacktracker,
-        RandomizedPrim
+        RandomizedPrim,
+        RandomizedKruskal
     }
 }

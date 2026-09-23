@@ -38,6 +38,11 @@ public class DungeonController : MonoBehaviour
                 return useSeed
                     ? new RandomizedPrim(seed)
                     : new RandomizedPrim();
+            
+            case MazeAlgorithm.RandomizedKruskal:
+                return useSeed
+                    ? new RandomizedKruskal(seed)
+                    : new RandomizedKruskal();
 
             default:
                 throw new ArgumentOutOfRangeException();
