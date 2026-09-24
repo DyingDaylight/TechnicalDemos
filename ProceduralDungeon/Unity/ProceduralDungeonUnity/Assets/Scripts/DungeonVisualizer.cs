@@ -11,6 +11,11 @@ namespace DefaultNamespace
         
         public void Draw(DungeonMap map)
         {
+            foreach (Transform child in transform)
+            {
+                Destroy(child.gameObject);
+            }
+            
             for (int y = 0; y < map.Height; y++)
             {
                 for (int x = 0; x < map.Width; x++)
@@ -22,6 +27,7 @@ namespace DefaultNamespace
                         transform);
 
                     tile.transform.localScale = new Vector3(tileScale, tileScale, 1);
+                    tile.layer = LayerMask.NameToLayer("DungeonPreview");
 
                     SpriteRenderer renderer = tile.GetComponent<SpriteRenderer>();
 

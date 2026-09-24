@@ -7,42 +7,27 @@ using UnityEngine;
 
 public class DungeonController : MonoBehaviour
 {
-    [SerializeField] MazeAlgorithm algorithm;
-    [SerializeField] private int dungeonWidth = 20;
-    [SerializeField] private int dungeonHeight = 20;
-    [SerializeField] private bool useSeed = true;
-    [SerializeField] private int seed = 100;
-    
-    [SerializeField] private DungeonVisualizer visualizer;
-    
-    void Start()
+    public DungeonMap GenerateDungeon(MazeAlgorithm mazeAlgorithm, int width, int height, int seed)
     {
-        MazeGenerator mazeGenerator = CreateMazeGenerator();
+        MazeGenerator mazeGenerator = CreateMazeGenerator(mazeAlgorithm, seed);
         MapGenerator mapGenerator = new MapGenerator(mazeGenerator);
-        DungeonMap map = mapGenerator.Generate(dungeonWidth, dungeonHeight);
-
-        Debug.Log(DungeonDebug.ToString(map));
-        visualizer.Draw(map);
+        DungeonMap map = mapGenerator.Generate(width, height);
+        
+        return map;
     }
     
-    private MazeGenerator CreateMazeGenerator()
+    private MazeGenerator CreateMazeGenerator(MazeAlgorithm algorithm, int seed)
     {
         switch (algorithm)
         {
             case MazeAlgorithm.RecursiveBacktracker:
-                return useSeed
-                    ? new RecursiveBacktracker(seed)
-                    : new RecursiveBacktracker();
+                return new RecursiveBacktracker(seed);
 
             case MazeAlgorithm.RandomizedPrim:
-                return useSeed
-                    ? new RandomizedPrim(seed)
-                    : new RandomizedPrim();
+                return new RandomizedPrim(seed);
             
             case MazeAlgorithm.RandomizedKruskal:
-                return useSeed
-                    ? new RandomizedKruskal(seed)
-                    : new RandomizedKruskal();
+                return new RandomizedKruskal(seed);
 
             default:
                 throw new ArgumentOutOfRangeException();
