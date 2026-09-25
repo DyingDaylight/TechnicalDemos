@@ -384,7 +384,7 @@ GameObject:
   - component: {fileID: 39759906}
   - component: {fileID: 39759905}
   m_Layer: 5
-  m_Name: DungeonPanel
+  m_Name: PreviewPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2372,8 +2372,8 @@ GameObject:
   m_Component:
   - component: {fileID: 620642400}
   - component: {fileID: 620642399}
-  - component: {fileID: 620642398}
   - component: {fileID: 620642397}
+  - component: {fileID: 620642401}
   m_Layer: 0
   m_Name: DungeonCamera
   m_TagString: Untagged
@@ -2425,14 +2425,6 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
---- !u!81 &620642398
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 620642396}
-  m_Enabled: 1
 --- !u!20 &620642399
 Camera:
   m_ObjectHideFlags: 0
@@ -2468,7 +2460,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 209.41684
+  orthographic size: 5
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
@@ -2493,12 +2485,24 @@ Transform:
   m_GameObject: {fileID: 620642396}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 205.13365, y: 146.97612, z: -10}
+  m_LocalPosition: {x: 0, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &620642401
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 620642396}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8374e0a996a36584ba085041226f1eef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
 --- !u!1 &625534896
 GameObject:
   m_ObjectHideFlags: 0
@@ -3756,6 +3760,8 @@ MonoBehaviour:
   generatedInfo: {fileID: 763272815}
   dungeonController: {fileID: 1138372355}
   visualizer: {fileID: 1612660497}
+  cameraFitter: {fileID: 620642401}
+  dungeonView: {fileID: 1064691655}
 --- !u!1 &853989018
 GameObject:
   m_ObjectHideFlags: 0
@@ -4591,7 +4597,6 @@ GameObject:
   - component: {fileID: 1064691654}
   - component: {fileID: 1064691652}
   - component: {fileID: 1064691655}
-  - component: {fileID: 1064691656}
   m_Layer: 5
   m_Name: DungeonView
   m_TagString: Untagged
@@ -4610,7 +4615,8 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1700088573}
   m_Father: {fileID: 39759904}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -4658,33 +4664,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d94368b6a0ef764babe6b2d7af03e0b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
---- !u!114 &1064691656
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1064691650}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RawImage
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Texture: {fileID: 8400000, guid: fd4451b7c462bb64497361883493487b, type: 2}
-  m_UVRect:
-    serializedVersion: 2
-    x: 0
-    y: 0
-    width: 1
-    height: 1
+  previewImage: {fileID: 1700088573}
 --- !u!1 &1076896711
 GameObject:
   m_ObjectHideFlags: 0
@@ -4898,7 +4878,7 @@ GameObject:
   - component: {fileID: 1119817217}
   - component: {fileID: 1119817216}
   m_Layer: 5
-  m_Name: SettingPanel
+  m_Name: MainPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6638,7 +6618,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1612660498}
   - component: {fileID: 1612660497}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: DungeonVisualizer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7126,6 +7106,78 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1667090323}
+  m_CullTransparentMesh: 1
+--- !u!1 &1700088572
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1700088573}
+  - component: {fileID: 1700088575}
+  - component: {fileID: 1700088574}
+  m_Layer: 5
+  m_Name: PreviewImage
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1700088573
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1700088572}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1064691651}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1700088574
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1700088572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RawImage
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Texture: {fileID: 8400000, guid: fd4451b7c462bb64497361883493487b, type: 2}
+  m_UVRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+--- !u!222 &1700088575
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1700088572}
   m_CullTransparentMesh: 1
 --- !u!1 &1741867021
 GameObject:

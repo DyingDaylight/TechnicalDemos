@@ -1,8 +1,7 @@
 ﻿using Core;
-using Generation;
 using UnityEngine;
 
-namespace DefaultNamespace
+namespace Visualization
 {
     public class DungeonVisualizer : MonoBehaviour
     {
@@ -27,7 +26,7 @@ namespace DefaultNamespace
                         transform);
 
                     tile.transform.localScale = new Vector3(tileScale, tileScale, 1);
-                    tile.layer = LayerMask.NameToLayer("DungeonPreview");
+                    tile.layer = gameObject.layer;
 
                     SpriteRenderer renderer = tile.GetComponent<SpriteRenderer>();
 
@@ -38,5 +37,20 @@ namespace DefaultNamespace
             }
         }
         
+        public Vector2 GetSize(DungeonMap map)
+        {
+            return new Vector2(
+                map.Width * tileScale,
+                map.Height * tileScale
+            );
+        }
+        
+        public Vector2 GetCenter(DungeonMap map)
+        {
+            return new Vector2(
+                (map.Width - 1) * tileScale / 2f,
+                (map.Height - 1) * tileScale / 2f
+            );
+        }
     }
 }

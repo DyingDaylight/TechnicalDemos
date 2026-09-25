@@ -460,10 +460,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   algorithm: 2
-  dungeonWidth: 20
-  dungeonHeight: 20
+  dungeonWidth: 21
+  dungeonHeight: 21
   useSeed: 1
-  seed: 100
+  seed: 22
   dungeonController: {fileID: 557443011}
   visualizer: {fileID: 593018970}
 --- !u!4 &634106010

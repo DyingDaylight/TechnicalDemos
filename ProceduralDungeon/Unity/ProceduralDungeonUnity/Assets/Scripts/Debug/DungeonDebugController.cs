@@ -1,8 +1,8 @@
 using Core;
 using DebugTools;
-using DefaultNamespace;
 using Generation;
 using UnityEngine;
+using Visualization;
 
 public class DungeonDebugController : MonoBehaviour
 {
