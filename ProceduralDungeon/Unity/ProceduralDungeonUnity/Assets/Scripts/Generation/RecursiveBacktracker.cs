@@ -19,11 +19,14 @@ namespace Generation
         public override void Generate(DungeonMap map)
         {
             FillWithWalls(map);
+            CompleteStep(map);
             
             Stack<Vector2Int> stack = new Stack<Vector2Int>();
             
             Vector2Int current = new Vector2Int(1, 1);
             map[current.x, current.y] = TileType.Floor;
+            CompleteStep(map);
+            
             int iterations = 0;
             
             do
@@ -41,9 +44,10 @@ namespace Generation
                     continue;
                 }
                 
-                Vector2Int next = availableNeighbors[_random.Next(availableNeighbors.Count)];
+                Vector2Int next = availableNeighbors[Random.Next(availableNeighbors.Count)];
                 stack.Push(current);
                 MakeWay(current, next, map);
+                CompleteStep(map);
                 current = next;
             } while (true);
         }

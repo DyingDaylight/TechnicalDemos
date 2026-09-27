@@ -1,17 +1,17 @@
 using System;
-using Core;
 using Generation;
 using UnityEngine;
 
 public class DungeonController : MonoBehaviour
 {
-    public DungeonMap GenerateDungeon(MazeAlgorithm mazeAlgorithm, int width, int height, int seed)
+    public GenerationResult GenerateDungeon(MazeAlgorithm mazeAlgorithm, int width, int height, int seed,
+        bool recordHistory = false)
     {
         MazeGenerator mazeGenerator = CreateMazeGenerator(mazeAlgorithm, seed);
         MapGenerator mapGenerator = new MapGenerator(mazeGenerator);
-        DungeonMap map = mapGenerator.Generate(width, height);
+        GenerationResult generationResult = mapGenerator.Generate(width, height, recordHistory);
         
-        return map;
+        return generationResult;
     }
     
     private MazeGenerator CreateMazeGenerator(MazeAlgorithm algorithm, int seed)

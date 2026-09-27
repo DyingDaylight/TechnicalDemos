@@ -1,11 +1,11 @@
 ﻿namespace Core
 {
-    public class DungeonMap
+    public class DungeonMap : IReadOnlyDungeonMap
     {
         private readonly TileType[,] _map;
 
-        public int Width { get; private set; }
-        public int Height { get; private set; }
+        public int Width { get; }
+        public int Height { get; }
 
         public DungeonMap(int width, int height)
         {

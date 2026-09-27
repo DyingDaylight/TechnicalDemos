@@ -17,13 +17,15 @@ public class DungeonDebugController : MonoBehaviour
     
     void Start()
     {
-        int _seed = useSeed ? seed : Random.Range(int.MinValue, int.MaxValue);
+        int actualSeed = useSeed ? seed : Random.Range(int.MinValue, int.MaxValue);
         
-        DungeonMap map = dungeonController.GenerateDungeon(
-            algorithm, dungeonWidth, dungeonHeight, _seed);
+        GenerationResult result = dungeonController.GenerateDungeon(
+            algorithm, dungeonWidth, dungeonHeight, actualSeed, false);
 
-        Debug.Log(DungeonDebug.ToString(map));
-        visualizer.Draw(map);
+        Debug.Log($"Seed: {actualSeed}");
+        Debug.Log(DungeonDebug.ToString(result.Map));
+        
+        visualizer.Draw(result.Map);
     }
 
 }

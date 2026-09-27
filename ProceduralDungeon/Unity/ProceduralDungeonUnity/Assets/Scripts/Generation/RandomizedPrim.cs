@@ -34,11 +34,11 @@ namespace Generation
 
             while (frontier.Count > 0)
             {
-                Vector2Int currentTile = frontier[_random.Next(frontier.Count)];
+                Vector2Int currentTile = frontier[Random.Next(frontier.Count)];
                 frontier.Remove(currentTile);
                 
                 List<Vector2Int> neighbors = GetAvailableNeighbors(currentTile, map, IsFloor);
-                Vector2Int nextTile = neighbors[_random.Next(neighbors.Count)];
+                Vector2Int nextTile = neighbors[Random.Next(neighbors.Count)];
                 MakeWay(currentTile, nextTile, map);    
                 
                 List<Vector2Int> unseenNeighbors = GetAvailableNeighbors(currentTile, map, isUnseen);

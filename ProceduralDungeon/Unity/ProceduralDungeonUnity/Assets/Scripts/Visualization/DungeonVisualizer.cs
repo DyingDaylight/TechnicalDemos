@@ -8,7 +8,7 @@ namespace Visualization
         [SerializeField] private GameObject tilePrefab;
         [SerializeField] [Range(0, 1)] private float tileScale = 0.5f;
         
-        public void Draw(DungeonMap map)
+        public void Draw(IReadOnlyDungeonMap map)
         {
             foreach (Transform child in transform)
             {
@@ -37,7 +37,7 @@ namespace Visualization
             }
         }
         
-        public Vector2 GetSize(DungeonMap map)
+        public Vector2 GetSize(IReadOnlyDungeonMap map)
         {
             return new Vector2(
                 map.Width * tileScale,
@@ -45,7 +45,7 @@ namespace Visualization
             );
         }
         
-        public Vector2 GetCenter(DungeonMap map)
+        public Vector2 GetCenter(IReadOnlyDungeonMap map)
         {
             return new Vector2(
                 (map.Width - 1) * tileScale / 2f,

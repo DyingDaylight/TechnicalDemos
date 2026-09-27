@@ -61,9 +61,9 @@ namespace Generation
                     Vector2Int right = new Vector2Int(x + 2, y);
                     Vector2Int up = new Vector2Int(x, y + 2);
                     
-                    if (IsInside(right, map))
+                    if (IsInsideMazeBounds(right, map))
                         edges.Add(new MazeEdge(first, right));
-                    if (IsInside(up, map))
+                    if (IsInsideMazeBounds(up, map))
                         edges.Add(new MazeEdge(first, up));
                 }
             }
@@ -74,7 +74,7 @@ namespace Generation
             int n = list.Count;
             while (n > 1) {
                 n--;
-                int k = _random.Next(n + 1);
+                int k = Random.Next(n + 1);
                 (list[k], list[n]) = (list[n], list[k]);
             }
         }

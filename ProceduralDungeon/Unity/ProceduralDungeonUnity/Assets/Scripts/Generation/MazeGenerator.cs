@@ -7,8 +7,10 @@ namespace Generation
 {
     public abstract class MazeGenerator
     {
-        protected readonly System.Random _random;
+        protected readonly System.Random Random;
 
+        public event Action<DungeonMap> StepCompleted;
+        
         public MazeGenerator() : this(new System.Random())
         {
         }
@@ -19,7 +21,7 @@ namespace Generation
 
         private MazeGenerator(System.Random random)
         {
-            _random = random;
+            Random = random;
         }
         
         public abstract void Generate(DungeonMap map);
@@ -60,7 +62,7 @@ namespace Generation
             map[next.x, next.y] = TileType.Floor;
         }
 
-        protected bool IsInside(Vector2Int coordinate, DungeonMap map)
+        protected bool IsInsideMazeBounds(Vector2Int coordinate, DungeonMap map)
         {
             return coordinate.x >= 1
                    && coordinate.x < map.Width - 1
@@ -70,12 +72,17 @@ namespace Generation
 
         protected bool IsWall(Vector2Int coordinate, DungeonMap map)
         {
-            return IsInside(coordinate, map) && map[coordinate.x, coordinate.y] == TileType.Wall;
+            return IsInsideMazeBounds(coordinate, map) && map[coordinate.x, coordinate.y] == TileType.Wall;
         }
 
         protected bool IsFloor(Vector2Int coordinate, DungeonMap map)
         {
-            return IsInside(coordinate, map) && map[coordinate.x, coordinate.y] == TileType.Floor;
+            return IsInsideMazeBounds(coordinate, map) && map[coordinate.x, coordinate.y] == TileType.Floor;
+        }
+        
+        protected void CompleteStep(DungeonMap map)
+        {
+            StepCompleted?.Invoke(map);
         }
     }
 }
