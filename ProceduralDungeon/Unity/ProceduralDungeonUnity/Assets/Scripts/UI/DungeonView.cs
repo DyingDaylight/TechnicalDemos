@@ -5,9 +5,28 @@ namespace UI
     public class DungeonView : MonoBehaviour
     {
         [SerializeField] private RectTransform previewImage;
-
+        
+        private int dungeonWidth;
+        private int dungeonHeight;
+        
         public void FitPreview(int dungeonWidth, int dungeonHeight)
         {
+            this.dungeonWidth = dungeonWidth;
+            this.dungeonHeight = dungeonHeight;
+
+            UpdatePreviewSize();
+        }
+
+        private void OnRectTransformDimensionsChange()
+        {
+            UpdatePreviewSize();
+        }
+
+        private void UpdatePreviewSize()
+        {
+            if (dungeonWidth <= 0 || dungeonHeight <= 0)
+                return;
+            
             RectTransform view = (RectTransform)transform;
 
             float scale = Mathf.Min(
@@ -18,14 +37,10 @@ namespace UI
             float previewSize = Mathf.Max(dungeonWidth, dungeonHeight) * scale;
 
             previewImage.SetSizeWithCurrentAnchors(
-                RectTransform.Axis.Horizontal,
-                previewSize
-            );
+                RectTransform.Axis.Horizontal, previewSize);
 
             previewImage.SetSizeWithCurrentAnchors(
-                RectTransform.Axis.Vertical,
-                previewSize
-            );
+                RectTransform.Axis.Vertical, previewSize);
         }
     }
 }
