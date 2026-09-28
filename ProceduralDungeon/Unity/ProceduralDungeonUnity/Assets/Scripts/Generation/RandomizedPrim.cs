@@ -19,6 +19,7 @@ namespace Generation
         public override void Generate(DungeonMap map)
         {
             FillWithWalls(map);
+            CompleteStep(map);
             
             List<Vector2Int> frontier = new List<Vector2Int>();
             Func<Vector2Int, DungeonMap, bool> isUnseen =
@@ -28,6 +29,7 @@ namespace Generation
             
             Vector2Int current = new Vector2Int(1, 1);
             map[current.x, current.y] = TileType.Floor;
+            CompleteStep(map);
             
             List<Vector2Int> availableNeighbors = GetAvailableNeighbors(current, map, isUnseen);
             frontier.AddRange(availableNeighbors);
@@ -39,7 +41,8 @@ namespace Generation
                 
                 List<Vector2Int> neighbors = GetAvailableNeighbors(currentTile, map, IsFloor);
                 Vector2Int nextTile = neighbors[Random.Next(neighbors.Count)];
-                MakeWay(currentTile, nextTile, map);    
+                MakeWay(currentTile, nextTile, map);
+                CompleteStep(map);
                 
                 List<Vector2Int> unseenNeighbors = GetAvailableNeighbors(currentTile, map, isUnseen);
                 frontier.AddRange(unseenNeighbors);

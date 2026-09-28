@@ -30,6 +30,7 @@ namespace Generation
         public override void Generate(DungeonMap map)
         {
             FillWithWalls(map);
+            CompleteStep(map);
 
             List<MazeEdge> edges = new List<MazeEdge>();
             DisjointSet sets = new DisjointSet();
@@ -43,6 +44,7 @@ namespace Generation
                 {
                     sets.Union(edge.First, edge.Second);
                     MakeWay(edge.First, edge.Second, map);
+                    CompleteStep(map);
                 }
             }
             
