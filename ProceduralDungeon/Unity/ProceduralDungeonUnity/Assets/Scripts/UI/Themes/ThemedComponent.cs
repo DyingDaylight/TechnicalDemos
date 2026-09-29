@@ -28,6 +28,12 @@ namespace UI.Themes
         {
             RefreshThemeProvider();
         }
+        
+        protected virtual void OnDestroy()
+        {
+            UnsubscribeFromTheme();
+            UnsubscribeFromThemeProvider();
+        }
 
         private void RefreshThemeProvider()
         {
@@ -84,7 +90,7 @@ namespace UI.Themes
         
         private void ApplyTheme()
         {
-            if (theme == null)
+            if (this == null || theme == null)
                 return;
 
             ApplyThemeProperties();
