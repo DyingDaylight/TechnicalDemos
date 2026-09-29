@@ -5,9 +5,16 @@
         Background,
         Panel,
         Control,
+        
         PrimaryText,
         SecondaryText,
+        
         Accent,
-        Border
+        Border,
+        
+        Highlighted,
+        Pressed,
+        Selected,
+        Disabled
     }
 }

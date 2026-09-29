@@ -5,10 +5,7 @@ namespace UI.Themes
     [ExecuteAlways]
     public abstract class ThemedComponent : MonoBehaviour
     {
-        [SerializeField] private ThemeColor themeColor;
-        
         protected DungeonLabTheme Theme => theme;
-        protected ThemeColor ThemeColor => themeColor;
         
         private ThemeProvider themeProvider;
         private DungeonLabTheme theme;
