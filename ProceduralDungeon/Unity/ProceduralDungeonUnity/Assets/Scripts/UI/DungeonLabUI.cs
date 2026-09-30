@@ -20,6 +20,10 @@ namespace UI
         [SerializeField] private TMP_InputField seedInput;
         [SerializeField] private Toggle recordHistoryToggle;
         [SerializeField] private Toggle animateGenerationToggle;
+        [SerializeField] private Button widthDecreaseButton;
+        [SerializeField] private Button widthIncreaseButton;
+        [SerializeField] private Button heightDecreaseButton;
+        [SerializeField] private Button heightIncreaseButton;
 
         [Header("Size Constraints")] 
         [SerializeField] private int minSize = 5;
@@ -73,6 +77,13 @@ namespace UI
             
             UpdatePlaybackControls();
             UpdatePlayPauseIcon();
+
+            UpdateSizeButtons(
+                widthInput, defaultWidth,
+                widthDecreaseButton, widthIncreaseButton);
+            UpdateSizeButtons(
+                heightInput, defaultHeight,
+                heightDecreaseButton, heightIncreaseButton);
         }
 
         public void OnRecordHistoryChanged(bool isOn)
@@ -81,6 +92,60 @@ namespace UI
 
             if (!isOn)
                 animateGenerationToggle.isOn = false;
+        }
+        
+        public void OnWidthDecreaseClicked()
+        {
+            ChangeSize(widthInput, defaultWidth, -1);
+            
+            UpdateSizeButtons(
+                widthInput, defaultWidth,
+                widthDecreaseButton, widthIncreaseButton);
+        }
+        
+        public void OnWidthIncreaseClicked()
+        {
+            ChangeSize(widthInput, defaultWidth, 1);
+            
+            UpdateSizeButtons(
+                widthInput, defaultWidth,
+                widthDecreaseButton, widthIncreaseButton);
+        }
+        
+        public void OnHeightDecreaseClicked()
+        {
+            ChangeSize(heightInput, defaultHeight, -1);
+            
+            UpdateSizeButtons(
+                heightInput, defaultHeight,
+                heightDecreaseButton, heightIncreaseButton);
+        }
+
+        public void OnHeightIncreaseClicked()
+        {
+            ChangeSize(heightInput, defaultHeight, 1);
+            
+            UpdateSizeButtons(
+                heightInput, defaultHeight,
+                heightDecreaseButton, heightIncreaseButton);
+        }
+        
+        public void OnWidthEndEdit()
+        {
+            NormalizeSizeInput(widthInput, defaultWidth);
+            
+            UpdateSizeButtons(
+                widthInput, defaultWidth,
+                widthDecreaseButton, widthIncreaseButton);
+        }
+
+        public void OnHeightEndEdit()
+        {
+            NormalizeSizeInput(heightInput, defaultHeight);
+            
+            UpdateSizeButtons(
+                heightInput, defaultHeight,
+               heightDecreaseButton, heightIncreaseButton);
         }
 
         public void OnGenerateClicked()
@@ -291,6 +356,28 @@ namespace UI
             
             playIcon.SetActive(!isPlaying);
             pauseIcon.SetActive(isPlaying);
+        }
+        
+        private void ChangeSize(TMP_InputField input, int defaultValue, int delta)
+        {
+            int value = ReadSize(input, defaultValue);
+            value = Mathf.Clamp(value + delta, minSize, maxSize);
+            input.SetTextWithoutNotify(value.ToString());
+        }
+        
+        private void NormalizeSizeInput(TMP_InputField input, int defaultValue)
+        {
+            int value = ReadSize(input, defaultValue);
+            input.SetTextWithoutNotify(value.ToString());
+        }
+        
+        private void UpdateSizeButtons(TMP_InputField input, int defaultValue,
+            Button decreaseButton, Button increaseButton)
+        {
+            int value = ReadSize(input, defaultValue);
+
+            decreaseButton.interactable = value > minSize;
+            increaseButton.interactable = value < maxSize;
         }
     }
 }
