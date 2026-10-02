@@ -3,7 +3,7 @@ using DataStructures;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Tests.EditMode.ProceduralDungeon.EditMode.Tests.DataStructures
+namespace Tests.DataStructures
 {
     public class DisjointSetTests
     {

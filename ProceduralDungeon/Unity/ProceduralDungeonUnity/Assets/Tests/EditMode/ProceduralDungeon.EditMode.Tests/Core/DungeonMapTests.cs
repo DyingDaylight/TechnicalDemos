@@ -1,7 +1,7 @@
 ﻿using Core;
 using NUnit.Framework;
 
-namespace Tests.EditMode.ProceduralDungeon.EditMode.Tests.Core
+namespace Tests.Core
 {
     public class DungeonMapTests
     {

@@ -2,7 +2,7 @@
 using Generation;
 using NUnit.Framework;
 
-namespace Tests.EditMode.ProceduralDungeon.EditMode.Tests
+namespace Tests.Generation
 {
     public class GenerationHistoryTests
     {

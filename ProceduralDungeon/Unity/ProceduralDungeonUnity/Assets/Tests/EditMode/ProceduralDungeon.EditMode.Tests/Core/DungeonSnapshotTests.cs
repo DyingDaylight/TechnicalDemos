@@ -1,10 +1,7 @@
-﻿using System.Collections;
-using Core;
+﻿using Core;
 using NUnit.Framework;
-using UnityEditor;
-using UnityEngine.TestTools;
 
-namespace Tests.EditMode.ProceduralDungeon.EditMode.Tests.Core
+namespace Tests.Core
 {
     public class DungeonSnapshotTests
     {

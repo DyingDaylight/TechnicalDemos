@@ -1,11 +1,8 @@
-﻿using System.Collections;
-using Core;
+﻿using Core;
 using Generation;
 using NUnit.Framework;
-using UnityEditor;
-using UnityEngine.TestTools;
 
-namespace Tests.EditMode.ProceduralDungeon.EditMode.Tests
+namespace Tests.Generation
 {
     public class MapGeneratorTests
     {
