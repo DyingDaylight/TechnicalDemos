@@ -91,7 +91,7 @@ namespace Tests.Generation
         public void Generate_ProducesMazeWithoutCycles(MazeAlgorithm algorithm)
         {
             // Arrange
-            DungeonMap map = new DungeonMap(5, 5);
+            DungeonMap map = new DungeonMap(27, 19);
             MazeGenerator generator = CreateGenerator(algorithm, 0);
 
             // Act

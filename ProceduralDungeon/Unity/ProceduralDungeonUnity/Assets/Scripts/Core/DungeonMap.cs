@@ -1,5 +1,7 @@
 ﻿namespace Core
 {
+    // Dungeon coordinates use [x, y]:
+    // x = horizontal (width), y = vertical (height).
     public class DungeonMap : IReadOnlyDungeonMap
     {
         private readonly TileType[,] _map;

@@ -6,7 +6,6 @@ namespace Visualization
     public class DungeonVisualizer : MonoBehaviour
     {
         [SerializeField] private GameObject tilePrefab;
-        [SerializeField] [Range(0, 1)] private float tileScale = 0.5f;
         
         public void Draw(IReadOnlyDungeonMap map)
         {
@@ -21,11 +20,10 @@ namespace Visualization
                 {
                     GameObject tile = Instantiate(
                         tilePrefab,
-                        new Vector3(x * tileScale, y * tileScale, 0),
+                        new Vector3(x, y, 0),
                         Quaternion.identity,
                         transform);
 
-                    tile.transform.localScale = new Vector3(tileScale, tileScale, 1);
                     tile.layer = gameObject.layer;
 
                     SpriteRenderer renderer = tile.GetComponent<SpriteRenderer>();
@@ -39,17 +37,14 @@ namespace Visualization
         
         public Vector2 GetSize(IReadOnlyDungeonMap map)
         {
-            return new Vector2(
-                map.Width * tileScale,
-                map.Height * tileScale
-            );
+            return new Vector2(map.Width, map.Height);
         }
         
         public Vector2 GetCenter(IReadOnlyDungeonMap map)
         {
             return new Vector2(
-                (map.Width - 1) * tileScale / 2f,
-                (map.Height - 1) * tileScale / 2f
+                (map.Width - 1) / 2f,
+                (map.Height - 1) / 2f
             );
         }
     }
