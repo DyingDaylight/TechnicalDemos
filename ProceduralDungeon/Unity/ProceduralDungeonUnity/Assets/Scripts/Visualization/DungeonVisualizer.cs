@@ -7,7 +7,7 @@ namespace Visualization
     {
         [SerializeField] private GameObject tilePrefab;
         
-        public void Draw(IReadOnlyDungeonMap map)
+        public virtual void Draw(IReadOnlyDungeonMap map)
         {
             foreach (Transform child in transform)
             {

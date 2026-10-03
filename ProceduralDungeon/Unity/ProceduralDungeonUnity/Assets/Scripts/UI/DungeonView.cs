@@ -9,7 +9,7 @@ namespace UI
         private int dungeonWidth;
         private int dungeonHeight;
         
-        public void FitPreview(int dungeonWidth, int dungeonHeight)
+        public virtual void FitPreview(int dungeonWidth, int dungeonHeight)
         {
             this.dungeonWidth = dungeonWidth;
             this.dungeonHeight = dungeonHeight;

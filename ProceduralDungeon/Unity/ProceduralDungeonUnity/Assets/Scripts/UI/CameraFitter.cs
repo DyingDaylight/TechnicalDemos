@@ -12,7 +12,7 @@ namespace UI
             _camera = GetComponent<Camera>();
         }
     
-        public void Fit(Vector2 center, Vector2 size)
+        public virtual void Fit(Vector2 center, Vector2 size)
         {
             _camera.transform.position = new Vector3(
                 center.x, center.y, _camera.transform.position.z);

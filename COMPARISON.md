@@ -69,7 +69,29 @@ later be reused by the other implementations.
 
 ### Randomized Kruskal
 
-...
+**Requirements**
+- Generate a perfect maze using the Randomized Kruskal algorithm.
+- Keep the outer border closed.
+- Support deterministic generation using a seed.
+- Support rectangular maps.
+
+#### Unity
+
+**Time:** ~1.5h· **Difficulty:** Medium
+
+**Notes**
+- Generation logic is independent from visualization.
+- A reusable disjoint-set data structure was added to support the algorithm.
+- The existing grid representation could be reused, but Kruskal required building and shuffling a collection of possible connections instead of using the neighbor-selection approach from the previous algorithms.
+- The algorithm was integrated into the same generation and step-recording infrastructure as Recursive Backtracker and Randomized Prim.
+
+#### Godot
+
+*Not implemented.*
+
+#### LibGDX
+
+*Not implemented.*
 
 ## Generation History & Playback
 
@@ -123,16 +145,17 @@ later be reused by the other implementations.
 - Automatically verify core dungeon generation behavior.
 - Test core map, snapshot, history, and generation behavior independently from the graphical application where possible.
 - Verify shared maze generation invariants and deterministic generation.
-- Test Unity lifecycle-dependent UI behavior in Play Mode.
+- Verify interactive UI behavior, including generation controls and history playback.
 
 #### Unity
 
-**Time:** ~4h · **Difficulty:** Medium
+**Time:** ~6h · **Difficulty:** Medium
 
 **Notes**
 - Unity Test Framework supports both fast tests for non-graphical logic and Play Mode tests for behavior that depends on the engine lifecycle.
-- Testing pure C# code was straightforward; engine-dependent behavior required a separate Play Mode test setup.
+- Testing pure C# code was straightforward; engine-dependent components and UI behavior required dedicated Play Mode fixtures and lightweight mocks.
 - Shared tests made it possible to verify the same behavioral requirements across different maze algorithms without duplicating test logic.
+- UI tests cover generation settings, size validation and controls, generation history navigation, and playback state.
 - Setting up test assemblies and their dependencies required noticeable initial configuration, but adding further tests became straightforward once the structure was in place.
 
 #### Godot
