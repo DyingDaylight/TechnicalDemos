@@ -5992,7 +5992,9 @@ MonoBehaviour:
   pauseIcon: {fileID: 1769102112}
   stepSlider: {fileID: 1817827040}
   speedDropdown: {fileID: 1915003078}
+  gameplayDropdown: {fileID: 856432130}
   generatedInfo: {fileID: 763272815}
+  playButton: {fileID: 1818417778}
   dungeonController: {fileID: 1138372355}
   visualizer: {fileID: 1612660497}
   cameraFitter: {fileID: 620642401}
@@ -6755,13 +6757,7 @@ MonoBehaviour:
   m_MultiSelect: 0
   m_Options:
     m_Options:
-    - m_Text: Option A
-      m_Image: {fileID: 0}
-      m_Color: {r: 1, g: 1, b: 1, a: 1}
-    - m_Text: Option B
-      m_Image: {fileID: 0}
-      m_Color: {r: 1, g: 1, b: 1, a: 1}
-    - m_Text: Option C
+    - m_Text: Flood Escape
       m_Image: {fileID: 0}
       m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_OnValueChanged:
@@ -11255,7 +11251,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Option A
+  m_text: Flood Escape
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f6374b37d5271ab4bb25a1aa265267cf, type: 2}
   m_sharedMaterial: {fileID: -5271316908314480317, guid: f6374b37d5271ab4bb25a1aa265267cf, type: 2}
@@ -12195,7 +12191,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DefaultNamespace.DungeonVisualizer
   tilePrefab: {fileID: 5984115441479296810, guid: 95c910095b04aab428f24d342ed2b3cd, type: 3}
-  tileScale: 0.5
 --- !u!4 &1612660498
 Transform:
   m_ObjectHideFlags: 0
@@ -14008,7 +14003,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1818417779}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 787474654}
+        m_TargetAssemblyTypeName: UI.DungeonLabUI, ProceduralDungeon
+        m_MethodName: OnPlayButtonClicked
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1818417779
 MonoBehaviour:
   m_ObjectHideFlags: 0

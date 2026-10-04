@@ -11,6 +11,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/DungeonLab.unity
     guid: 0b32b223af8fcac4c886c565b3e3fe09
+  - enabled: 1
+    path: Assets/Scenes/FloodEscape.unity
+    guid: 7e1b482c8da8a7b4da71fe822ad52bd0
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0

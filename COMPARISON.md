@@ -81,9 +81,10 @@ later be reused by the other implementations.
 
 **Notes**
 - Generation logic is independent from visualization.
-- A reusable disjoint-set data structure was added to support the algorithm.
-- The existing grid representation could be reused, but Kruskal required building and shuffling a collection of possible connections instead of using the neighbor-selection approach from the previous algorithms.
-- The algorithm was integrated into the same generation and step-recording infrastructure as Recursive Backtracker and Randomized Prim.
+- Unlike the previous maze generators, Randomized Kruskal required a separate disjoint-set data structure to track connectivity between maze cells.
+- The disjoint-set implementation uses path compression and union by size to keep repeated connectivity checks efficient.
+- Possible connections are collected before generation and shuffled using the generator's seeded random source, preserving deterministic generation.
+- The existing `MazeGenerator` infrastructure could still be reused for map initialization, carving passages, bounds checking, and generation-step recording.
 
 #### Godot
 
@@ -97,7 +98,30 @@ later be reused by the other implementations.
 
 ### Record generation history
 
-...
+**Requirements**
+- Optionally record the dungeon state during generation.
+- Preserve the sequence of generation steps without affecting the final generated map.
+- Allow generation to run without recording history when playback is not needed.
+- Keep history recording independent from visualization.
+
+#### Unity
+
+**Time:** ~3h · **Difficulty:** Medium
+
+**Notes**
+- Generation steps are recorded as immutable snapshots, allowing the same read-only map representation to be used for both the final dungeon and previously recorded states.
+- Recording was deliberately kept outside individual generation algorithms: algorithms only report completed steps and do not need to know whether those steps are being stored.
+- History recording is optional. When disabled, intermediate snapshots are not created, avoiding the main performance and memory cost of the feature.
+- Recorded history contains only generation data; navigation and playback state are handled separately by the UI.
+- Full snapshots make playback and random access between steps simple, but consume considerably more memory than storing only the changes made at each step.
+
+#### Godot
+
+*Not implemented.*
+
+#### LibGDX
+
+*Not implemented.*
 
 ### Step-by-step playback
 

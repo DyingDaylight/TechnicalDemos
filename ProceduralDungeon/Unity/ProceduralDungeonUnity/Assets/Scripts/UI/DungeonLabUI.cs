@@ -6,6 +6,7 @@ using Core;
 using Generation;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Visualization;
 
@@ -41,8 +42,12 @@ namespace UI
         [SerializeField] private Slider stepSlider;
         [SerializeField] private TMP_Dropdown speedDropdown;
 
+        [Header("Gameplay")] 
+        [SerializeField] private TMP_Dropdown gameplayDropdown;
+        
         [Header("Output")] 
         [SerializeField] private TMP_Text generatedInfo;
+        [SerializeField] private Button playButton;
 
         [Header("Dependencies")] 
         [SerializeField] private DungeonController dungeonController;
@@ -78,6 +83,8 @@ namespace UI
             UpdatePlaybackControls();
             UpdatePlayPauseIcon();
 
+            playButton.interactable = false;
+            
             UpdateSizeButtons(
                 widthInput, defaultWidth,
                 widthDecreaseButton, widthIncreaseButton);
@@ -164,6 +171,8 @@ namespace UI
 
             SetGenerationResult(generationResult);
             ShowGenerationInfo(generationResult, algorithm, width, height, seed);
+            
+            playButton.interactable = generationResult?.Map != null;
         }
 
         public void OnPlaybackSpeedChanged(int index)
@@ -202,6 +211,23 @@ namespace UI
         {
             SetCurrentStep((int)value);
         }
+
+        public void OnPlayButtonClicked()
+        {
+            string selectedGameplay = gameplayDropdown.options[gameplayDropdown.value].text;
+            
+            switch (selectedGameplay)
+            {
+                case "Flood Escape":
+                    LoadScene("FloodEscape");
+                    break;
+            }
+        }
+        
+        protected virtual void LoadScene(string sceneName)
+        {
+            SceneManager.LoadScene(sceneName);
+        }
         
         private void SetGenerationResult(GenerationResult generationResult)
         {
@@ -209,7 +235,7 @@ namespace UI
 
             cameraFitter.Fit(visualizer.GetCenter(generationResult.Map), visualizer.GetSize(generationResult.Map));
             dungeonView.FitPreview(generationResult.Map.Width, generationResult.Map.Height);
-
+            
             if (currentHistory != null && animateGenerationToggle.isOn)
             {
                 SetCurrentStep(0);

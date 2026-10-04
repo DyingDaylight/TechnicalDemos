@@ -14,7 +14,7 @@ namespace Tests.UI
     public abstract class DungeonLabUITestBase
     {
         protected GameObject gameObject;
-        protected DungeonLabUI dungeonLabUI;
+        protected TestDungeonLabUI dungeonLabUI;
 
         // Generation
         protected TMP_Dropdown algorithmDropdown;
@@ -40,6 +40,10 @@ namespace Tests.UI
         protected GameObject playIcon;
         protected GameObject pauseIcon;
 
+        // Gameplay
+        protected TMP_Dropdown gameplayDropdown;
+        protected Button playButton;
+        
         // Dependencies
         private TMP_Dropdown speedDropdown;
         private DungeonController dungeonController;
@@ -51,11 +55,12 @@ namespace Tests.UI
         protected virtual void BaseSetUp()
         {
             gameObject = new GameObject("DungeonLabUI");
-            dungeonLabUI = gameObject.AddComponent<DungeonLabUI>();
+            dungeonLabUI = gameObject.AddComponent<TestDungeonLabUI>();
 
             SetUpGenerationControls();
             SetUpSizeControls();
             SetUpPlaybackControls();
+            SetUpGameplayControls();
             SetUpDependencies();
 
             SetUpTest();
@@ -132,6 +137,15 @@ namespace Tests.UI
             SetPrivateField("pauseIcon", pauseIcon);
         }
 
+        private void SetUpGameplayControls()
+        {
+            playButton = CreateComponent<Button>("Play Button");
+            gameplayDropdown = CreateComponent<TMP_Dropdown>("GameplayDropdown");
+            
+            SetPrivateField("playButton", playButton);
+            SetPrivateField("gameplayDropdown", gameplayDropdown);
+        }
+
         private void SetUpDependencies()
         {
             dungeonController = gameObject.AddComponent<DungeonController>();
@@ -186,6 +200,16 @@ namespace Tests.UI
             TMP_Text placeholder = CreateComponent<TextMeshProUGUI>(name);
             placeholder.transform.SetParent(input.transform);
             input.placeholder = placeholder;
+        }
+        
+        protected class TestDungeonLabUI : DungeonLabUI
+        {
+            public string LoadedSceneName { get; private set; }
+
+            protected override void LoadScene(string sceneName)
+            {
+                LoadedSceneName = sceneName;
+            }
         }
     }
 }
