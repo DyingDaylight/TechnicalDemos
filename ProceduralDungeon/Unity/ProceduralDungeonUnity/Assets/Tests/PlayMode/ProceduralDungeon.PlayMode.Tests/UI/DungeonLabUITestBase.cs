@@ -2,6 +2,7 @@
 using System.Reflection;
 using Generation;
 using NUnit.Framework;
+using Session;
 using Tests.Mocks;
 using TMPro;
 using UI;
@@ -54,6 +55,8 @@ namespace Tests.UI
         [SetUp]
         protected virtual void BaseSetUp()
         {
+            SessionData.Clear();
+            
             gameObject = new GameObject("DungeonLabUI");
             dungeonLabUI = gameObject.AddComponent<TestDungeonLabUI>();
 
@@ -74,6 +77,8 @@ namespace Tests.UI
         protected virtual void TearDown()
         {
             Object.DestroyImmediate(gameObject);
+            
+            SessionData.Clear();
         }
         
         private void SetUpGenerationControls()

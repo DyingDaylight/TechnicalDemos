@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using NUnit.Framework;
+using Session;
 using TMPro;
 using UnityEngine.TestTools;
 
@@ -35,8 +36,10 @@ namespace Tests.UI
             gameplayDropdown.value = 0;
 
             dungeonLabUI.OnPlayButtonClicked();
-
+            
+            Assert.AreSame(dungeonLabUI.GeneratedMap, SessionData.ConsumeDungeonMap());
             Assert.AreEqual("FloodEscape", dungeonLabUI.LoadedSceneName);
         }
+        
     }
 }

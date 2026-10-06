@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core;
 using Generation;
+using Session;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -57,11 +58,15 @@ namespace UI
 
         private const float PlaybackInterval = 0.1f;
 
+        private IReadOnlyDungeonMap generatedMap;
+        
         private GenerationHistory currentHistory;
         private int currentStep;
 
         private float playbackSpeed = 1f;
         private Coroutine playbackCoroutine;
+        
+        public IReadOnlyDungeonMap GeneratedMap => generatedMap;
 
         void Start()
         {
@@ -168,11 +173,12 @@ namespace UI
 
             GenerationResult generationResult =
                 dungeonController.GenerateDungeon(algorithm, width, height, seed, recordHistory);
-
+            
             SetGenerationResult(generationResult);
             ShowGenerationInfo(generationResult, algorithm, width, height, seed);
-            
-            playButton.interactable = generationResult?.Map != null;
+
+            generatedMap = generationResult?.Map;
+            playButton.interactable = generatedMap != null;
         }
 
         public void OnPlaybackSpeedChanged(int index)
@@ -215,6 +221,8 @@ namespace UI
         public void OnPlayButtonClicked()
         {
             string selectedGameplay = gameplayDropdown.options[gameplayDropdown.value].text;
+            
+            SessionData.SetDungeonMap(generatedMap);
             
             switch (selectedGameplay)
             {

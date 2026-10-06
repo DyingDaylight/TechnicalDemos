@@ -5,7 +5,7 @@ namespace DebugTools
 {
     public class DungeonDebug
     {
-        public static string ToString(DungeonMap map)
+        public static string ToString(IReadOnlyDungeonMap map)
         {
             StringBuilder stringBuilder = new StringBuilder();
 
