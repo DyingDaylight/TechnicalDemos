@@ -214,6 +214,32 @@ later be reused by the other implementations.
 
 ## Gameplay
 
+### Gameplay map rendering
+
+**Requirements**
+- Render the generated dungeon as a grid-based gameplay map.
+- Visually distinguish walkable and non-walkable cells.
+- Support rectangular maps of different sizes.
+- Keep the complete gameplay map visible within the camera view.
+
+#### Unity
+
+**Time:** ~1h · **Difficulty:** Easy
+
+**Notes**
+- The gameplay map is rendered using a Tilemap, with dungeon `[x, y]` coordinates mapping directly to Tilemap cell coordinates.
+- Map rendering is separated from the gameplay controller; the renderer only translates dungeon cells into tiles.
+- Tile references use the common tile base type, leaving the renderer compatible with different tile implementations, including animated tiles.
+- The existing camera-fitting component could be reused from the Dungeon Lab. Configurable world-space padding was added to keep the map away from the screen edges.
+
+#### Godot
+
+*Not implemented.*
+
+#### LibGDX
+
+*Not implemented.*
+
 ### Flood Escape
 
 ...

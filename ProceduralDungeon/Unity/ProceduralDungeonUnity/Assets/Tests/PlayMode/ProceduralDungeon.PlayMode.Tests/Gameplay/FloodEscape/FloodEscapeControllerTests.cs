@@ -3,6 +3,7 @@ using Core;
 using Gameplay.FloodEscape;
 using NUnit.Framework;
 using Session;
+using Tests.Mocks;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -25,7 +26,7 @@ namespace Tests.Gameplay.FloodEscape
             DungeonMap map = new DungeonMap(5, 5);
             SessionData.SetDungeonMap(map);
             
-            FloodEscapeController controller = gameObject.AddComponent<FloodEscapeController>();
+            FloodEscapeControllerMock controller = gameObject.AddComponent<FloodEscapeControllerMock>();
 
             yield return null;
 
@@ -36,7 +37,7 @@ namespace Tests.Gameplay.FloodEscape
         [UnityTest]
         public IEnumerator Start_WithoutDungeonMap_UsesDebugMapInEditor()
         {
-            FloodEscapeController controller = gameObject.AddComponent<FloodEscapeController>();
+            FloodEscapeControllerMock controller = gameObject.AddComponent<FloodEscapeControllerMock>();
 
             LogAssert.Expect(LogType.Warning,
                 "No dungeon map received. Using a debug map.");
