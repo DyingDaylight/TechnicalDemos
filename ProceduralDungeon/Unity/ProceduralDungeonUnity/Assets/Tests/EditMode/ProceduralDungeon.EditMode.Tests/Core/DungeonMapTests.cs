@@ -5,6 +5,23 @@ namespace Tests.Core
 {
     public class DungeonMapTests
     {
+        [Test]
+        public void CopyConstructor_CreatesIndependentCopy()
+        {
+            DungeonMap source = new DungeonMap(3, 2);
+            source[1, 1] = TileType.Floor;
+
+            DungeonMap copy = new DungeonMap(source);
+
+            Assert.AreEqual(source.Width, copy.Width);
+            Assert.AreEqual(source.Height, copy.Height);
+            Assert.AreEqual(TileType.Floor, copy[1, 1]);
+
+            copy[1, 1] = TileType.Wall;
+
+            Assert.AreEqual(TileType.Floor, source[1, 1]);
+            Assert.AreEqual(TileType.Wall, copy[1, 1]);
+        }
 
         [Test]
         public void Constructor_SetsWidthAndHeight()
@@ -57,5 +74,6 @@ namespace Tests.Core
             // Act and Assert
             Assert.AreEqual(expected, map.IsInside(x, y));
         }
+        
     }
 }

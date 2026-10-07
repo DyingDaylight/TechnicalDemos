@@ -152,7 +152,30 @@ later be reused by the other implementations.
 
 ### Dungeon rendering
 
-...
+**Requirements**
+- Render the generated dungeon in a form suitable for inspecting the generation result.
+- Visually distinguish different tile types.
+- Support rectangular maps of different sizes.
+- Replace the previous visualization when a new dungeon or generation step is displayed.
+- Keep the complete dungeon visible within the preview area.
+
+#### Unity
+
+**Time:** ~? · **Difficulty:** Easy
+
+**Notes**
+- The initial Dungeon Lab visualizer uses one GameObject per dungeon cell. All tile objects are recreated on each draw, which kept the implementation simple and was sufficient for a diagnostic tool; pooling, Tilemap rendering, and a single-mesh approach were left as possible optimizations to compare later.
+- The first implementation used a configurable tile scale for both tile size and spacing. This was later simplified to one dungeon cell per Unity world unit, leaving map scaling to the camera rather than the renderer.
+- Keeping the map in its native world-space size also simplified fitting rectangular maps: the visualizer can derive the preview bounds directly from the dungeon dimensions, while the camera handles different map and viewport aspect ratios.
+- The renderer remains intentionally diagnostic rather than a gameplay rendering solution; gameplay visualization was implemented separately once Flood Escape required collisions and game-specific presentation.
+
+#### Godot
+
+*Not implemented.*
+
+#### LibGDX
+
+*Not implemented.*
 
 ### Fit dungeon to preview
 
@@ -240,9 +263,35 @@ later be reused by the other implementations.
 
 *Not implemented.*
 
-### Flood Escape
+### Player movement and level boundaries
 
-...
+**Requirements**
+- Allow the player to move continuously through walkable dungeon space.
+- Prevent movement through walls.
+- Create an entrance on the lower dungeon boundary connected to the generated maze.
+- Create an exit on the upper dungeon boundary connected to the generated maze.
+- Spawn the player at the entrance.
+- Preserve the original generated dungeon data when preparing the map for gameplay.
+
+#### Unity
+
+**Time:** ~2h · **Difficulty:** Medium
+
+**Notes**
+- Flood Escape creates a mutable copy of the generated map before applying gameplay-specific changes, while exposing the prepared map as read-only to other systems.
+- Entrance and exit placement searches from the horizontal center for a nearby floor cell on the inner boundary, then opens the corresponding outer boundary cell.
+- Player movement uses the project-wide Input System movement action directly. Input is read during the frame update and applied to a Rigidbody2D during the physics update.
+- The existing normalized digital movement binding prevents faster diagonal keyboard movement without normalizing analog input in gameplay code, preserving partial stick input.
+- Collision is provided by the gameplay Tilemap: floor tiles have no collider, while wall tiles use grid-shaped tile colliders.
+- Play Mode input tests use the Input System test framework to simulate keyboard input. Reproducing the scene's zero-gravity Rigidbody2D configuration in the test fixture was necessary to avoid physics affecting movement assertions.
+
+#### Godot
+
+*Not implemented.*
+
+#### LibGDX
+
+*Not implemented.*
 
 ## Testing
 

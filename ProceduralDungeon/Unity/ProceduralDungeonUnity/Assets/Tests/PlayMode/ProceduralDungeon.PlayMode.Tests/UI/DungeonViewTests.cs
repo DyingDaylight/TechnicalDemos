@@ -2,6 +2,7 @@
 using System.Reflection;
 using NUnit.Framework;
 using UI;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -30,11 +31,9 @@ namespace Tests.UI
             previewRect = previewObject.GetComponent<RectTransform>();
             previewRect.SetParent(viewRect, false);
 
-            FieldInfo previewImageField = typeof(DungeonView)
-                .GetField("previewImage",
-                    BindingFlags.NonPublic | BindingFlags.Instance);
-
-            previewImageField.SetValue(dungeonView, previewRect);
+            SerializedObject serializedController = new SerializedObject(dungeonView);
+            serializedController.FindProperty("previewImage").objectReferenceValue = previewRect;
+            serializedController.ApplyModifiedProperties();
         }
         
         [TestCase(20, 10, 400f)]
