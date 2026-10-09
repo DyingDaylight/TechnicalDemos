@@ -12,9 +12,18 @@ namespace Gameplay.FloodEscape
         [SerializeField] private DungeonTilemapRenderer tilemapRenderer;
         [SerializeField] private CameraFitter cameraFitter;
         [SerializeField] private PlayerController playerController;
-        
-        
+
+        [Header("Diamond Settings")]
+        [SerializeField] private float targetDetourRatio = 0.5f;
+
+        [Header("Prefabs")]
+        [SerializeField] private DoorController doorPrefab;
+        [SerializeField] private GameObject diamondPrefab;
+
         protected IReadOnlyDungeonMap map;
+
+        private DoorController exitDoor;
+        private bool hasDiamond;
         
         public IReadOnlyDungeonMap Map => map;
         
@@ -36,11 +45,17 @@ namespace Gameplay.FloodEscape
 
             Vector2 entrancePosition = CreateEntrance(gameplayMap);
             Vector2 exitPosition = CreateExit(gameplayMap);
-
+            
             map = gameplayMap;
 
             DisplayMap(map);
             playerController.transform.position = entrancePosition;
+            
+            Vector2Int entrance = Vector2Int.FloorToInt(entrancePosition);
+            Vector2Int exit = Vector2Int.FloorToInt(exitPosition);
+            
+            SpawnDoors(entrancePosition, exitPosition);
+            SpawnDiamond(map, entrance, exit);
         }
         
         protected virtual void DisplayMap(IReadOnlyDungeonMap map)
@@ -88,6 +103,37 @@ namespace Gameplay.FloodEscape
             }
             
             throw new InvalidOperationException("Could not create dungeon opening.");
+        }
+        
+        private void SpawnDoors(Vector2 entrancePosition, Vector2 exitPosition)
+        {
+            DoorController entranceDoor = Instantiate(doorPrefab, entrancePosition, 
+                Quaternion.identity);
+            entranceDoor.SetOpen(true);
+
+            exitDoor = Instantiate(doorPrefab, exitPosition, Quaternion.identity);
+            exitDoor.SetOpen(false);
+        }
+        
+        private void SpawnDiamond(IReadOnlyDungeonMap map, Vector2Int entrancePosition,
+            Vector2Int exitPosition)
+        {
+            Vector2Int diamondPosition = DiamondPlacement.FindPosition(
+                map, entrancePosition, exitPosition, targetDetourRatio);
+            
+            GameObject diamond = Instantiate(diamondPrefab,
+                new Vector3(diamondPosition.x + 0.5f, diamondPosition.y + 0.5f, 0f),
+                Quaternion.identity);
+            
+            diamond.GetComponent<DiamondPickup>().Collected += OnDiamondCollected;
+        }
+        
+        private void OnDiamondCollected()
+        {
+            hasDiamond = true;
+            exitDoor.SetOpen(true);
+            
+            Debug.Log("Diamond collected!");
         }
     }
 }
