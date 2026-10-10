@@ -113,6 +113,7 @@ namespace Gameplay.FloodEscape
 
             exitDoor = Instantiate(doorPrefab, exitPosition, Quaternion.identity);
             exitDoor.SetOpen(false);
+            exitDoor.Entered += OnExitEntered;
         }
         
         private void SpawnDiamond(IReadOnlyDungeonMap map, Vector2Int entrancePosition,
@@ -134,6 +135,11 @@ namespace Gameplay.FloodEscape
             exitDoor.SetOpen(true);
             
             Debug.Log("Diamond collected!");
+        }
+        
+        private void OnExitEntered()
+        {
+            Debug.Log("Level completed!");
         }
     }
 }
