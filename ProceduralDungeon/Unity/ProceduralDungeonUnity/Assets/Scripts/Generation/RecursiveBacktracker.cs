@@ -18,7 +18,6 @@ namespace Generation
         
         public override void Generate(DungeonMap map)
         {
-            FillWithWalls(map);
             CompleteStep(map);
             
             Stack<Vector2Int> stack = new Stack<Vector2Int>();

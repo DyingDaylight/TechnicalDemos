@@ -26,17 +26,6 @@ namespace Generation
         
         public abstract void Generate(DungeonMap map);
         
-        protected void FillWithWalls(DungeonMap map)
-        {
-            for (int y = 0; y < map.Height; y++)
-            {
-                for (int x = 0; x < map.Width; x++)
-                {
-                    map[x, y] = TileType.Wall;
-                }
-            }
-        }
-        
         protected List<Vector2Int> GetAvailableNeighbors(Vector2Int current, DungeonMap map, Func<Vector2Int, DungeonMap, bool> isAvailable)
         {
             List<Vector2Int> neighbors = new List<Vector2Int>();

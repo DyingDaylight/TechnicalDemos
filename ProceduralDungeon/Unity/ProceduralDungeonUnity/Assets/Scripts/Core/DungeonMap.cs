@@ -9,11 +9,19 @@
         public int Width { get; }
         public int Height { get; }
 
-        public DungeonMap(int width, int height)
+        public DungeonMap(int width, int height, TileType initialTile = TileType.Wall)
         {
             map = new TileType[width, height];
             Width = width;
             Height = height;
+            
+            for (int y = 0; y < Height; y++)
+            {
+                for (int x = 0; x < Width; x++)
+                {
+                    map[x, y] = initialTile;
+                }
+            }
         }
 
         public DungeonMap(IReadOnlyDungeonMap sourceMap)

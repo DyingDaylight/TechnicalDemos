@@ -29,7 +29,6 @@ namespace Generation
         
         public override void Generate(DungeonMap map)
         {
-            FillWithWalls(map);
             CompleteStep(map);
 
             List<MazeEdge> edges = new List<MazeEdge>();

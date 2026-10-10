@@ -18,7 +18,6 @@ namespace Generation
         
         public override void Generate(DungeonMap map)
         {
-            FillWithWalls(map);
             CompleteStep(map);
             
             List<Vector2Int> frontier = new List<Vector2Int>();

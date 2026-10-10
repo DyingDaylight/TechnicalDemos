@@ -12,7 +12,6 @@ namespace Tests.Analysis
         public void FindDeadEnds_StraightCorridor_ReturnsTwoDeadEnds()
         {
             DungeonMap map = new DungeonMap(5, 5);
-            FillWithWalls(map);
 
             map[2, 1] = TileType.Floor;
             map[2, 2] = TileType.Floor;
@@ -35,7 +34,6 @@ namespace Tests.Analysis
         public void FindDeadEnds_TShapedCorridor_ReturnsThreeDeadEnds()
         {
             DungeonMap map = new DungeonMap(5, 5);
-            FillWithWalls(map);
             
             map[1, 3] = TileType.Floor;
             map[2, 3] = TileType.Floor;
@@ -61,7 +59,6 @@ namespace Tests.Analysis
         public void FindDeadEnds_LoopCorridor_ReturnsNoDeadEnds()
         {
             DungeonMap map = new DungeonMap(5, 5);
-            FillWithWalls(map);
             
             for (int x = 1; x <= 3; x++)
             {
@@ -81,7 +78,6 @@ namespace Tests.Analysis
         public void FindDeadEnds_CorridorAtMapBoundary_ReturnsTwoDeadEnds()
         {
             DungeonMap map = new DungeonMap(5, 5);
-            FillWithWalls(map);
             
             map[0, 2] = TileType.Floor;
             map[1, 2] = TileType.Floor;
@@ -104,7 +100,6 @@ namespace Tests.Analysis
         public void GetDistances_StraightCorridor_ReturnsCorrectDistances()
         {
             DungeonMap map = new DungeonMap(5, 5);
-            FillWithWalls(map);
 
             map[2, 1] = TileType.Floor;
             map[2, 2] = TileType.Floor;
@@ -122,7 +117,6 @@ namespace Tests.Analysis
         public void GetDistances_TShapedCorridor_ReturnsCorrectDistances()
         {
             DungeonMap map = new DungeonMap(5, 5);
-            FillWithWalls(map);
 
             map[1, 3] = TileType.Floor;
             map[2, 3] = TileType.Floor;
@@ -143,7 +137,6 @@ namespace Tests.Analysis
         public void GetDistances_DisconnectedAreas_MarksUnreachableCells()
         {
             DungeonMap map = new DungeonMap(5, 5);
-            FillWithWalls(map);
 
             map[1, 1] = TileType.Floor;
             map[1, 2] = TileType.Floor;
@@ -163,7 +156,6 @@ namespace Tests.Analysis
         public void GetDistances_MultipleRoutes_ReturnsShortestDistance()
         {
             DungeonMap map = new DungeonMap(7, 5);
-            FillWithWalls(map);
 
             for (int x = 1; x <= 5; x++)
             {
@@ -196,21 +188,9 @@ namespace Tests.Analysis
         public void GetDistances_StartOnWall_ThrowsArgumentException()
         {
             DungeonMap map = new DungeonMap(5, 5);
-            FillWithWalls(map);
             
             Assert.Throws<ArgumentException>(() =>
                 DungeonAnalyzer.GetDistances(map, new Vector2Int(2, 2)));
-        }
-        
-        private void FillWithWalls(DungeonMap map)
-        {
-            for (int x = 0; x < map.Width; x++)
-            {
-                for (int y = 0; y < map.Height; y++)
-                {
-                    map[x, y] = TileType.Wall;
-                }
-            }
         }
     }
 }

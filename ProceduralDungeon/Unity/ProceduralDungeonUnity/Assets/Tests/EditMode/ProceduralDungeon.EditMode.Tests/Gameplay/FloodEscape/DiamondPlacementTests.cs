@@ -15,7 +15,6 @@ namespace Tests.Gameplay.FloodEscape
             float targetDetourRatio, int expectedX, int expectedY)
         {
             DungeonMap map = new DungeonMap(7, 7);
-            FillWithWalls(map);
 
             // Main path from entrance to exit.
             for (int y = 1; y <= 5; y++)
@@ -41,7 +40,6 @@ namespace Tests.Gameplay.FloodEscape
         public void FindPosition_ExcludesEntranceAndExit()
         {
             DungeonMap map = new DungeonMap(5, 5);
-            FillWithWalls(map);
 
             for (int y = 1; y <= 3; y++)
                 map[2, y] = TileType.Floor;
@@ -61,7 +59,6 @@ namespace Tests.Gameplay.FloodEscape
         public void FindPosition_IgnoresUnreachableDeadEnds()
         {
             DungeonMap map = new DungeonMap(7, 7);
-            FillWithWalls(map);
 
             for (int y = 1; y <= 5; y++)
                 map[3, y] = TileType.Floor;
@@ -85,7 +82,6 @@ namespace Tests.Gameplay.FloodEscape
         public void FindPosition_NoAvailableDeadEnds_ThrowsInvalidOperationException()
         {
             DungeonMap map = new DungeonMap(5, 5);
-            FillWithWalls(map);
 
             for (int y = 1; y <= 3; y++)
                 map[2, y] = TileType.Floor;
@@ -102,7 +98,6 @@ namespace Tests.Gameplay.FloodEscape
         public void FindPosition_PrefersDeadEndCloserToVerticalCenter()
         {
             DungeonMap map = new DungeonMap(9, 9);
-            FillWithWalls(map);
 
             for (int y = 1; y <= 7; y++)
                 map[4, y] = TileType.Floor;
@@ -127,7 +122,6 @@ namespace Tests.Gameplay.FloodEscape
             // so the test verifies that edge proximity overrides iteration order.
 
             DungeonMap map = new DungeonMap(11, 11);
-            FillWithWalls(map);
 
             // Main path.
             for (int y = 1; y <= 9; y++)
@@ -154,7 +148,6 @@ namespace Tests.Gameplay.FloodEscape
         public void FindPosition_UnreachableExit_ThrowsArgumentException()
         {
             DungeonMap map = new DungeonMap(5, 5);
-            FillWithWalls(map);
 
             // Entrance and exit belong to disconnected floor regions.
             map[1, 1] = TileType.Floor;
@@ -170,17 +163,6 @@ namespace Tests.Gameplay.FloodEscape
                 DiamondPlacement.FindPosition(map, entrance, exit, 0.5f));
 
             Assert.AreEqual("exit", exception.ParamName);
-        }
-        
-        private static void FillWithWalls(DungeonMap map)
-        {
-            for (int x = 0; x < map.Width; x++)
-            {
-                for (int y = 0; y < map.Height; y++)
-                {
-                    map[x, y] = TileType.Wall;
-                }
-            }
         }
     }
 }
