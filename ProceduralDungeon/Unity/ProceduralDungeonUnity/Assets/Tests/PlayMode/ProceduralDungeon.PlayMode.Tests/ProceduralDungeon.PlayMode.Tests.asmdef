@@ -7,7 +7,8 @@
         "ProceduralDungeon",
         "Unity.TextMeshPro",
         "Unity.InputSystem",
-        "Unity.InputSystem.TestFramework"
+        "Unity.InputSystem.TestFramework",
+        "ProceduralDungeon.TestHelpers"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

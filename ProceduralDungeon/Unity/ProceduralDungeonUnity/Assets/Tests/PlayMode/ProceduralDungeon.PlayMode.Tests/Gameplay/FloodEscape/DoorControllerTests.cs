@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 using NUnit.Framework;
-using UnityEditor;
+using Tests.Shared.Gameplay.FloodEscape;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -8,54 +8,41 @@ namespace Tests.Gameplay.FloodEscape
 {
     public class DoorControllerTests
     {
+        private FloodEscapeTestHelper helper;
+        
+        [SetUp]
+        public void SetUp()
+        {
+            helper = new FloodEscapeTestHelper();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            helper.Dispose();
+        }
+        
         [UnityTest]
         public IEnumerator OpenDoor_WhenPlayerEnters_RaisesEntered()
         {
-            GameObject doorObject = new GameObject("Door");
-            GameObject playerObject = new GameObject("Player");
-            playerObject.tag = "Player";
+            DoorController door = helper.CreateDoor();
+            PlayerController player = helper.CreatePlayer();
 
-            try
-            {
-                SpriteRenderer spriteRenderer = doorObject.AddComponent<SpriteRenderer>();
-                BoxCollider2D doorCollider = doorObject.AddComponent<BoxCollider2D>();
-                doorCollider.size = Vector2.one;
-                doorCollider.isTrigger = true;
+            player.transform.position = new Vector2(-3f, 0f);
 
-                DoorController door = doorObject.AddComponent<DoorController>();
+            bool entered = false;
+            door.Entered += () => entered = true;
 
-                SerializedObject serializedDoor = new SerializedObject(door);
-                serializedDoor.FindProperty("spriteRenderer").objectReferenceValue = spriteRenderer;
-                serializedDoor.ApplyModifiedPropertiesWithoutUndo();
+            door.SetOpen(true);
 
-                Rigidbody2D playerBody = playerObject.AddComponent<Rigidbody2D>();
-                playerBody.gravityScale = 0f;
+            yield return new WaitForFixedUpdate();
 
-                playerObject.AddComponent<BoxCollider2D>();
-                PlayerController playerController =
-                    playerObject.AddComponent<PlayerController>();
+            player.transform.position = door.transform.position;
 
-                playerBody.position = new Vector2(-3f, 0f);
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
 
-                bool entered = false;
-                door.Entered += () => entered = true;
-
-                door.SetOpen(true);
-
-                yield return new WaitForFixedUpdate();
-
-                playerObject.transform.position = doorObject.transform.position;
-
-                yield return new WaitForFixedUpdate();
-                yield return new WaitForFixedUpdate();
-
-                Assert.IsTrue(entered);
-            }
-            finally
-            {
-                Object.DestroyImmediate(doorObject);
-                Object.DestroyImmediate(playerObject);
-            }
+            Assert.IsTrue(entered);
         }
     }
 }

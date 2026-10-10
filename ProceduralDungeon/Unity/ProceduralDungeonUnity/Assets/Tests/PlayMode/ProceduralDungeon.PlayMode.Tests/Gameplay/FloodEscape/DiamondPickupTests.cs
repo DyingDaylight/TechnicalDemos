@@ -1,6 +1,6 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using NUnit.Framework;
+using Tests.Shared.Gameplay.FloodEscape;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -9,28 +9,26 @@ namespace Tests.Gameplay.FloodEscape
     public class DiamondPickupTests
     {
         private DiamondPickup pickup;
-        private List<GameObject> createdObjects = new List<GameObject>();
-
+        private FloodEscapeTestHelper helper;
+        
         [SetUp]
         public void SetUp()
         {
-            GameObject diamond = new GameObject("Diamond");
-            CircleCollider2D collider = diamond.AddComponent<CircleCollider2D>();
-            collider.isTrigger = true;
-            pickup = diamond.AddComponent<DiamondPickup>();
-            
-            createdObjects.Add(diamond);
+            helper = new FloodEscapeTestHelper();
+            pickup = helper.CreateDiamond();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            helper.Dispose();
         }
         
         [UnityTest]
         public IEnumerator OnTriggerEnter2D_CollisionWithPlayer_RaisesCollectedEvent()
         {
-            GameObject playerObject = new GameObject("Player");
-            playerObject.transform.position = new Vector3(0.5f, 0.5f, 0);
-            playerObject.AddComponent<Rigidbody2D>().gravityScale = 0f;
-            playerObject.AddComponent<BoxCollider2D>();
-            playerObject.tag = "Player";
-            createdObjects.Add(playerObject);
+            PlayerController player = helper.CreatePlayer();
+            player.transform.position = pickup.transform.position;
             
             bool wasCollected = false;
             pickup.Collected += () => wasCollected = true;
@@ -41,14 +39,11 @@ namespace Tests.Gameplay.FloodEscape
         }
         
         [UnityTest]
-        public IEnumerator OnTriggerEnter2D_CollisionWithNonPlayer_DosntRaiseCollectedEvent()
+        public IEnumerator OnTriggerEnter2D_CollisionWithNonPlayer_DoesntRaiseCollectedEvent()
         {
-            GameObject playerObject = new GameObject("Enemy");
-            playerObject.transform.position = new Vector3(0.5f, 0.5f, 0);
-            playerObject.AddComponent<Rigidbody2D>().gravityScale = 0f;
-            playerObject.AddComponent<BoxCollider2D>();
-            playerObject.tag = "Untagged";
-            createdObjects.Add(playerObject);
+            PlayerController player = helper.CreatePlayer();
+            player.transform.position = pickup.transform.position;
+            player.tag = "Untagged";
             
             bool wasCollected = false;
             pickup.Collected += () => wasCollected = true;
@@ -61,12 +56,8 @@ namespace Tests.Gameplay.FloodEscape
         [UnityTest]
         public IEnumerator OnTriggerEnter2D_CollisionWithPlayer_DestroysDiamond()
         {
-            GameObject playerObject = new GameObject("Player");
-            playerObject.transform.position = new Vector3(0.5f, 0.5f, 0);
-            playerObject.AddComponent<Rigidbody2D>().gravityScale = 0f;
-            playerObject.AddComponent<BoxCollider2D>();
-            playerObject.tag = "Player";
-            createdObjects.Add(playerObject);
+            PlayerController player = helper.CreatePlayer();
+            player.transform.position = pickup.transform.position;
 
             int collectionCount = 0;
             pickup.Collected += () => collectionCount++;
@@ -78,15 +69,6 @@ namespace Tests.Gameplay.FloodEscape
             yield return null;
             
             Assert.IsTrue(pickup == null);
-        }
-        
-        [TearDown]
-        public void TearDown()
-        {
-            foreach (GameObject gameObject in createdObjects)
-                Object.DestroyImmediate(gameObject);
-            
-            createdObjects.Clear();
         }
     }
 }

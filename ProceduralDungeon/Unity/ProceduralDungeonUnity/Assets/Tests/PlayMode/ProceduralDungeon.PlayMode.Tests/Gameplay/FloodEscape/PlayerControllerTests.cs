@@ -1,8 +1,10 @@
 ﻿using System.Collections;
 using NUnit.Framework;
+using Tests.Shared.Gameplay.FloodEscape;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.TestTools;
 
 namespace Tests.Gameplay.FloodEscape
@@ -12,22 +14,19 @@ namespace Tests.Gameplay.FloodEscape
         private const float TestMoveSpeed = 7f;
         
         private Keyboard keyboard;
-        private GameObject player;
+        private PlayerController player;
+        
+        private FloodEscapeTestHelper helper;
         
         public override void Setup()
         {
             base.Setup();
             
             keyboard = InputSystem.AddDevice<Keyboard>();
-
-            player = new GameObject("Player");
-            Rigidbody2D body = player.AddComponent<Rigidbody2D>();
-            body.gravityScale = 0f;
             
-            PlayerController controller = player.AddComponent<PlayerController>();
-            SerializedObject serializedController = new SerializedObject(controller);
-            serializedController.FindProperty("moveSpeed").floatValue = TestMoveSpeed;
-            serializedController.ApplyModifiedProperties();
+            helper = new FloodEscapeTestHelper();
+
+            player = helper.CreatePlayer(TestMoveSpeed);
         }
 
         [UnityTest]
@@ -51,9 +50,12 @@ namespace Tests.Gameplay.FloodEscape
 
             yield return null;
             yield return new WaitForFixedUpdate();
+            
+            //Release(keyboard.wKey);
 
-            Release(keyboard.wKey);
-
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+            InputSystem.Update();
+            
             yield return null;
             yield return new WaitForFixedUpdate();
 
@@ -78,8 +80,7 @@ namespace Tests.Gameplay.FloodEscape
         
         public override void TearDown()
         {
-            Object.DestroyImmediate(player);
-
+            helper.Dispose();
             base.TearDown();
         }
     }

@@ -1,0 +1,16 @@
+{
+    "name": "ProceduralDungeon.TestHelpers",
+    "rootNamespace": "",
+    "references": [
+        "GUID:c02e32967d70dcf45b22cd826d8a1763"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

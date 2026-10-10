@@ -1,9 +1,10 @@
 ﻿using System.Collections;
+using System.Linq;
 using Core;
-using Gameplay.FloodEscape;
 using NUnit.Framework;
 using Session;
 using Tests.Mocks;
+using Tests.Shared.Gameplay.FloodEscape;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -12,27 +13,28 @@ namespace Tests.Gameplay.FloodEscape
 {
     public class FloodEscapeControllerTests
     {
-        private GameObject gameObject;
-        private GameObject playerObject;
-        private PlayerController playerController;
+        private FloodEscapeTestHelper helper;
         private FloodEscapeControllerMock controller;
-        
-        private GameObject doorTemplate;
-        private GameObject diamondTemplate;
-        private Texture2D doorTexture;
-        private Sprite doorOpenSprite;
-        private Sprite doorClosedSprite;
+        private PlayerController player;
+        private DoorController doorPrefab;
+        private DiamondPickup diamondPrefab;
 
+        private Texture2D doorTexture;
+        private Sprite openSprite;
+        private Sprite closedSprite;
+        
+        
         [SetUp]
         public void SetUp()
         {
             SessionData.Clear();
-
-            gameObject = new GameObject("FloodEscapeController");
             
-            playerObject = new GameObject("Player");
-            playerObject.AddComponent<Rigidbody2D>().gravityScale = 0f;
-            playerController = playerObject.AddComponent<PlayerController>();
+            doorTexture = new Texture2D(2, 2);
+            openSprite = Sprite.Create(doorTexture, new Rect(0, 0, 2, 2), new Vector2(0.5f, 0.5f));
+            closedSprite = Sprite.Create(doorTexture, new Rect(0, 0, 2, 2), new Vector2(0.5f, 0.5f));
+            
+            helper = new FloodEscapeTestHelper();
+            player = helper.CreatePlayer();
         }
 
         [UnityTest]
@@ -40,9 +42,7 @@ namespace Tests.Gameplay.FloodEscape
         {
             DungeonMap map = CreateTestMap();
             SessionData.SetDungeonMap(map);
-            
-            controller = CreateController();
-            ConfigureGameplayPrefabs(controller);
+            PrepareController();
             
             yield return null;
 
@@ -50,7 +50,7 @@ namespace Tests.Gameplay.FloodEscape
             Assert.IsNull(SessionData.ConsumeDungeonMap());
             Assert.AreEqual(TileType.Floor, controller.Map[2, 0]);
             Assert.AreEqual(TileType.Floor, controller.Map[2, 4]);
-            Assert.AreEqual(new Vector3(2.5f, 0.5f, 0f), playerObject.transform.position);
+            Assert.AreEqual(new Vector3(2.5f, 0.5f, 0f), player.transform.position);
         }
 
         [UnityTest]
@@ -59,8 +59,7 @@ namespace Tests.Gameplay.FloodEscape
             LogAssert.Expect(LogType.Warning,
                 "No dungeon map received. Using a debug map.");
             
-            controller = CreateController();
-            ConfigureGameplayPrefabs(controller);
+            PrepareController();
             
             yield return null;
 
@@ -71,31 +70,22 @@ namespace Tests.Gameplay.FloodEscape
         public IEnumerator Start_SpawnsDoorsWithCorrectInitialStates()
         {
             SessionData.SetDungeonMap(CreateTestMap());
-
-            controller = CreateController();
-            ConfigureGameplayPrefabs(controller);
+            PrepareController();
 
             yield return null;
 
             DoorController entrance = FindSpawnedDoor(new Vector3(2.5f, 0.5f));
             DoorController exit = FindSpawnedDoor(new Vector3(2.5f, 4.5f));
 
-            Assert.AreSame(
-                doorOpenSprite,
-                entrance.GetComponent<SpriteRenderer>().sprite);
-
-            Assert.AreSame(
-                doorClosedSprite,
-                exit.GetComponent<SpriteRenderer>().sprite);
+            Assert.AreSame(openSprite, entrance.GetComponent<SpriteRenderer>().sprite);
+            Assert.AreSame(closedSprite, exit.GetComponent<SpriteRenderer>().sprite);
         }
 
         [UnityTest]
         public IEnumerator Start_SpawnsDiamondAtValidPosition()
         {
             SessionData.SetDungeonMap(CreateTestMap());
-
-            controller = CreateController();
-            ConfigureGameplayPrefabs(controller);
+            PrepareController();
 
             yield return null;
 
@@ -114,34 +104,20 @@ namespace Tests.Gameplay.FloodEscape
         public IEnumerator CollectDiamond_OpensExitDoor()
         {
             SessionData.SetDungeonMap(CreateTestMap());
-
-            controller = CreateController();
-            ConfigureGameplayPrefabs(controller);
+            PrepareController();
 
             yield return null;
 
             DoorController exit = FindSpawnedDoor(new Vector3(2.5f, 4.5f));
             DiamondPickup diamond = FindSpawnedDiamond();
 
-            Assert.AreSame(
-                doorClosedSprite,
-                exit.GetComponent<SpriteRenderer>().sprite);
+            Assert.AreSame(closedSprite, exit.GetComponent<SpriteRenderer>().sprite);
 
-            // Trigger the real pickup behaviour.
-            playerObject.tag = "Player";
-            playerObject.AddComponent<CircleCollider2D>();
-
-            CircleCollider2D diamondCollider =
-                diamond.gameObject.AddComponent<CircleCollider2D>();
-            diamondCollider.isTrigger = true;
-
-            playerObject.transform.position = diamond.transform.position;
+            player.transform.position = diamond.transform.position;
 
             yield return new WaitForFixedUpdate();
 
-            Assert.AreSame(
-                doorOpenSprite,
-                exit.GetComponent<SpriteRenderer>().sprite);
+            Assert.AreSame(openSprite, exit.GetComponent<SpriteRenderer>().sprite);
         }
         
         [TearDown]
@@ -149,24 +125,24 @@ namespace Tests.Gameplay.FloodEscape
         {
             foreach (DoorController door in Object.FindObjectsByType<DoorController>(FindObjectsSortMode.None))
             {
-                if (door.gameObject != doorTemplate)
+                if (door != doorPrefab)
                     Object.DestroyImmediate(door.gameObject);
             }
 
             foreach (DiamondPickup diamond in Object.FindObjectsByType<DiamondPickup>(FindObjectsSortMode.None))
             {
-                if (diamond.gameObject != diamondTemplate)
+                if (diamond != diamondPrefab)
                     Object.DestroyImmediate(diamond.gameObject);
             }
             
-            Object.DestroyImmediate(gameObject);
-            Object.DestroyImmediate(playerObject);
+            if (controller != null)
+                Object.DestroyImmediate(controller.gameObject);
             
-            Object.DestroyImmediate(doorTemplate);
-            Object.DestroyImmediate(diamondTemplate);
-            Object.DestroyImmediate(doorOpenSprite);
-            Object.DestroyImmediate(doorClosedSprite);
+            Object.DestroyImmediate(openSprite);
+            Object.DestroyImmediate(closedSprite);
             Object.DestroyImmediate(doorTexture);
+            
+            helper.Dispose();
             
             SessionData.Clear();
         }
@@ -185,80 +161,35 @@ namespace Tests.Gameplay.FloodEscape
             return map;
         }
         
-        private FloodEscapeControllerMock CreateController()
-        {
-            FloodEscapeControllerMock controller = gameObject.AddComponent<FloodEscapeControllerMock>();
-
-            SerializedObject serializedController = new SerializedObject(controller);
-            serializedController.FindProperty("playerController").objectReferenceValue = playerController;
-            serializedController.ApplyModifiedProperties();
-
-            return controller;
-        }
-        
-        private void ConfigureGameplayPrefabs(FloodEscapeController controller)
-        {
-            // Door template
-            doorTemplate = new GameObject("TestDoor");
-            SpriteRenderer renderer = doorTemplate.AddComponent<SpriteRenderer>();
-            DoorController doorController = doorTemplate.AddComponent<DoorController>();
-
-            doorTexture = new Texture2D(2, 2);
-
-            doorOpenSprite = Sprite.Create(
-                doorTexture,
-                new Rect(0, 0, 2, 2),
-                new Vector2(0.5f, 0.5f));
-
-            doorClosedSprite = Sprite.Create(
-                doorTexture,
-                new Rect(0, 0, 2, 2),
-                new Vector2(0.5f, 0.5f));
-
-            SerializedObject doorSerialized = new SerializedObject(doorController);
-            doorSerialized.FindProperty("spriteRenderer").objectReferenceValue = renderer;
-            doorSerialized.FindProperty("openSprite").objectReferenceValue = doorOpenSprite;
-            doorSerialized.FindProperty("closedSprite").objectReferenceValue = doorClosedSprite;
-            doorSerialized.ApplyModifiedPropertiesWithoutUndo();
-
-            // Diamond template
-            diamondTemplate = new GameObject("TestDiamond");
-            diamondTemplate.AddComponent<DiamondPickup>();
-
-            // Controller references
-            SerializedObject controllerSerialized = new SerializedObject(controller);
-            controllerSerialized.FindProperty("doorPrefab").objectReferenceValue = doorController;
-            controllerSerialized.FindProperty("diamondPrefab").objectReferenceValue = diamondTemplate;
-            controllerSerialized.ApplyModifiedPropertiesWithoutUndo();
-        }
-        
         private DoorController FindSpawnedDoor(Vector3 position)
         {
-            foreach (DoorController door in Object.FindObjectsByType<DoorController>(
-                         FindObjectsSortMode.None))
-            {
-                if (door.gameObject != doorTemplate &&
-                    Vector3.Distance(door.transform.position, position) < 0.01f)
-                {
-                    return door;
-                }
-            }
-
-            Assert.Fail($"Door not found at {position}");
-            return null;
+            return Object.FindObjectsByType<DoorController>(FindObjectsSortMode.None)
+                .Single(door =>
+                    door != doorPrefab &&
+                    Vector3.Distance(door.transform.position, position) < 0.01f);
         }
 
         private DiamondPickup FindSpawnedDiamond()
         {
-            foreach (DiamondPickup diamond in Object.FindObjectsByType<DiamondPickup>(
-                         FindObjectsSortMode.None))
-            {
-                if (diamond.gameObject != diamondTemplate)
-                    return diamond;
-            }
-
-            Assert.Fail("Spawned diamond not found");
-            return null;
+            return Object.FindObjectsByType<DiamondPickup>(FindObjectsSortMode.None)
+                .Single(diamond => diamond != diamondPrefab);
+        }
+        
+        private void PrepareController()
+        {
+            GameObject controllerObject = new GameObject("FloodEscapeController");
+            controller = controllerObject.AddComponent<FloodEscapeControllerMock>();
+            
+            doorPrefab = helper.CreateDoor(openSprite, closedSprite);
+            diamondPrefab = helper.CreateDiamond();
+            
+            SerializedObject serialized = new SerializedObject(controller);
+            
+            serialized.FindProperty("playerController").objectReferenceValue = player;
+            serialized.FindProperty("doorPrefab").objectReferenceValue = doorPrefab;
+            serialized.FindProperty("diamondPrefab").objectReferenceValue = diamondPrefab.gameObject;
+            
+            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
     }
 }
