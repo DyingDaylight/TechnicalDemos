@@ -54,5 +54,21 @@ namespace Tests.Gameplay.FloodEscape
             
             Assert.AreSame(closedSprite, spriteRenderer.sprite);
         }
+        
+        [Test]
+        public void SetOpen_True_EnablesTrigger()
+        {
+            doorController.SetOpen(true);
+
+            Assert.IsTrue(doorController.GetComponent<BoxCollider2D>().isTrigger);
+        }
+        
+        [Test]
+        public void SetOpen_False_DisablesTrigger()
+        {
+            doorController.SetOpen(false);
+
+            Assert.IsFalse(doorController.GetComponent<BoxCollider2D>().isTrigger);
+        }
     }
 }

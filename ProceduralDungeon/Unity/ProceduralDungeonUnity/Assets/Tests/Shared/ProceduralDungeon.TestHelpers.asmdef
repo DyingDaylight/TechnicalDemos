@@ -2,7 +2,8 @@
     "name": "ProceduralDungeon.TestHelpers",
     "rootNamespace": "",
     "references": [
-        "GUID:c02e32967d70dcf45b22cd826d8a1763"
+        "GUID:c02e32967d70dcf45b22cd826d8a1763",
+        "GUID:75469ad4d38634e559750d17036d5f7c"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -18,16 +18,18 @@ namespace Tests.Shared.Gameplay.FloodEscape
 
             BoxCollider2D collider = doorObject.AddComponent<BoxCollider2D>();
             collider.size = Vector2.one;
-            collider.isTrigger = true;
 
             DoorController door = doorObject.AddComponent<DoorController>();
             
             SerializedObject serializedDoor = new SerializedObject(door);
             serializedDoor.FindProperty("spriteRenderer").objectReferenceValue = renderer;
+            serializedDoor.FindProperty("doorCollider").objectReferenceValue = collider;
             serializedDoor.FindProperty("openSprite").objectReferenceValue = openSprite;
             serializedDoor.FindProperty("closedSprite").objectReferenceValue = closedSprite;
             serializedDoor.ApplyModifiedPropertiesWithoutUndo();
 
+            door.SetOpen(false);
+            
             return door;
         }
 

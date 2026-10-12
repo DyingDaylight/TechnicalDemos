@@ -54,6 +54,9 @@ namespace Gameplay.FloodEscape
             Vector2Int entrance = Vector2Int.FloorToInt(entrancePosition);
             Vector2Int exit = Vector2Int.FloorToInt(exitPosition);
             
+            PlaceBarrier(new Vector2Int(entrance.x, entrance.y - 1));
+            PlaceBarrier(new Vector2Int(exit.x, exit.y + 1));
+            
             SpawnDoors(entrancePosition, exitPosition);
             SpawnDiamond(map, entrance, exit);
         }
@@ -66,6 +69,11 @@ namespace Gameplay.FloodEscape
                 new Vector2(map.Width * 0.5f, map.Height * 0.5f),
                 new Vector2(map.Width, map.Height)
             );
+        }
+        
+        protected virtual void PlaceBarrier(Vector2Int position)
+        {
+            tilemapRenderer.PlaceBarrier(position);
         }
         
         private Vector2 CreateEntrance(DungeonMap map)

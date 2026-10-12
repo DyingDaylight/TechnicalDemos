@@ -106,6 +106,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   spriteRenderer: {fileID: 6445241356792025458}
+  doorCollider: {fileID: 9057822543529915610}
   openSprite: {fileID: 7987704302471707193, guid: dfb25be177f19b947ade80d8ca75225d, type: 3}
   closedSprite: {fileID: -5587899151745921581, guid: eeab7a394804e3c408c9e2b4cc0952dc, type: 3}
 --- !u!61 &9057822543529915610

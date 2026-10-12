@@ -950,6 +950,7 @@ MonoBehaviour:
   tilemap: {fileID: 78588084}
   floorTile: {fileID: 11400000, guid: 6081a60a56951a841ae0d35bee1609fa, type: 2}
   wallTile: {fileID: 11400000, guid: f87b835f9bd86a34db37d5da7b2c6265, type: 2}
+  invisibleBarrierTile: {fileID: 11400000, guid: 833715665f7f77844a3ee99548ce3260, type: 2}
 --- !u!4 &1126845723
 Transform:
   m_ObjectHideFlags: 0

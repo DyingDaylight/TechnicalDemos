@@ -8,6 +8,8 @@ public class DungeonTilemapRenderer : MonoBehaviour
     [SerializeField] private TileBase floorTile;
     [SerializeField] private TileBase wallTile;
     
+    [SerializeField] private TileBase invisibleBarrierTile;
+    
     public void Draw(IReadOnlyDungeonMap map)
     {
         tilemap.ClearAllTiles();
@@ -27,5 +29,11 @@ public class DungeonTilemapRenderer : MonoBehaviour
                 }
             }
         }
+    }
+    
+    public void PlaceBarrier(Vector2Int position)
+    {
+        tilemap.SetTile(new Vector3Int(position.x, position.y, 0),
+            invisibleBarrierTile);
     }
 }

@@ -118,6 +118,27 @@ namespace Tests.Gameplay.FloodEscape
             yield return new WaitForFixedUpdate();
 
             Assert.AreSame(openSprite, exit.GetComponent<SpriteRenderer>().sprite);
+            Assert.IsTrue(exit.GetComponent<Collider2D>().isTrigger);
+        }
+        
+        [UnityTest]
+        public IEnumerator Start_PlacesBarriersOutsideEntranceAndExit()
+        {
+            DungeonMap testMap = CreateTestMap();
+            SessionData.SetDungeonMap(testMap);
+
+            PrepareController();
+
+            yield return null;
+
+            Assert.That(
+                controller.BarrierPositions,
+                Is.EquivalentTo(new[]
+                {
+                    new Vector2Int(2, -1),
+                    new Vector2Int(2, 5)
+                })
+            );
         }
         
         [TearDown]
@@ -180,11 +201,12 @@ namespace Tests.Gameplay.FloodEscape
             GameObject controllerObject = new GameObject("FloodEscapeController");
             controller = controllerObject.AddComponent<FloodEscapeControllerMock>();
             
+            
             doorPrefab = helper.CreateDoor(openSprite, closedSprite);
             diamondPrefab = helper.CreateDiamond();
             
             SerializedObject serialized = new SerializedObject(controller);
-            
+
             serialized.FindProperty("playerController").objectReferenceValue = player;
             serialized.FindProperty("doorPrefab").objectReferenceValue = doorPrefab;
             serialized.FindProperty("diamondPrefab").objectReferenceValue = diamondPrefab.gameObject;

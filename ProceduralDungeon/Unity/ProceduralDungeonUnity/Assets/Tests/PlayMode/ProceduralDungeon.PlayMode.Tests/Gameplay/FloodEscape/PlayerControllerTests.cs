@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using NUnit.Framework;
 using Tests.Shared.Gameplay.FloodEscape;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
