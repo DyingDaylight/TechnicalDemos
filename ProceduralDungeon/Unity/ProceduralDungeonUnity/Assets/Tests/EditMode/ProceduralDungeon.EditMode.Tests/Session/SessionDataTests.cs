@@ -1,4 +1,5 @@
 ﻿using Core;
+using Generation;
 using NUnit.Framework;
 using Session;
 
@@ -16,23 +17,28 @@ namespace Tests.Session
         public void Clear_RemovesAllSessionData()
         {
             DungeonMap map = new DungeonMap(5, 5);
-            SessionData.SetDungeonMap(map);
+            DungeonSessionData session = new DungeonSessionData(
+                map, 12345, MazeAlgorithm.RecursiveBacktracker);
 
+            SessionData.SetDungeonSessionData(session);
             SessionData.Clear();
 
-            Assert.IsNull(SessionData.ConsumeDungeonMap());
+            Assert.IsNull(SessionData.ConsumeSessionData());
         }
         
         [Test]
-        public void ConsumeDungeonMap_ReturnsMapAndRemovesItFromSession()
+        public void ConsumeSessionData_ReturnsSessionAndClearsStoredData()
         {
             DungeonMap map = new DungeonMap(5, 5);
-            SessionData.SetDungeonMap(map);
+            DungeonSessionData session = new DungeonSessionData(
+                map, 12345, MazeAlgorithm.RecursiveBacktracker);
+            
+            SessionData.SetDungeonSessionData(session);
 
-            IReadOnlyDungeonMap result = SessionData.ConsumeDungeonMap();
+            DungeonSessionData result = SessionData.ConsumeSessionData();
 
-            Assert.AreSame(map, result);
-            Assert.IsNull(SessionData.ConsumeDungeonMap());
+            Assert.AreSame(session, result);
+            Assert.IsNull(SessionData.ConsumeSessionData());
         }
         
         [TearDown]

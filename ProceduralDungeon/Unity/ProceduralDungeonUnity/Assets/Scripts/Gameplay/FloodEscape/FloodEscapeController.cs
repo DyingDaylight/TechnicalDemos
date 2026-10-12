@@ -1,6 +1,7 @@
 ﻿using System;
 using Core;
 using DebugTools;
+using Generation;
 using Session;
 using UI;
 using UnityEngine;
@@ -22,43 +23,42 @@ namespace Gameplay.FloodEscape
 
         protected IReadOnlyDungeonMap map;
 
+        private DungeonSequenceGenerator sequenceGenerator;
+        private DoorController entranceDoor;
         private DoorController exitDoor;
+        private DiamondPickup diamond;
         private bool hasDiamond;
         
         public IReadOnlyDungeonMap Map => map;
         
         private void Start()
         {
-            IReadOnlyDungeonMap sourceMap = SessionData.ConsumeDungeonMap();
-            if (sourceMap == null)
-            {
+            DungeonSessionData sessionData = SessionData.ConsumeSessionData();
+            
 #if UNITY_EDITOR
-                Debug.LogWarning("No dungeon map received. Using a debug map.");
-                sourceMap = DebugDungeonFactory.Create();
-#else
-                Debug.LogError("Flood Escape started without a dungeon map.");
-                // TODO: Decide how the gameplay scene should handle missing dungeon data in builds.
-#endif
+            if (sessionData == null || sessionData.Map == null)
+            {
+                Debug.LogWarning("No dungeon session received. Using a debug map.");
+
+                sessionData = new DungeonSessionData(
+                    DebugDungeonFactory.Create(),
+                    12345,
+                    MazeAlgorithm.RecursiveBacktracker
+                );
             }
+#else
+            if (sessionData == null || sessionData.Map == null)
+            {
+                Debug.LogError("Flood Escape started without dungeon session data.");
+                // TODO: Decide how the gameplay scene should handle missing dungeon data in builds.
+                return;
+            }
+#endif
             
-            DungeonMap gameplayMap = new DungeonMap(sourceMap);
-
-            Vector2 entrancePosition = CreateEntrance(gameplayMap);
-            Vector2 exitPosition = CreateExit(gameplayMap);
+            sequenceGenerator = new DungeonSequenceGenerator(sessionData.Map.Width, 
+                sessionData.Map.Height, sessionData.Seed, sessionData.Algorithm);
             
-            map = gameplayMap;
-
-            DisplayMap(map);
-            playerController.transform.position = entrancePosition;
-            
-            Vector2Int entrance = Vector2Int.FloorToInt(entrancePosition);
-            Vector2Int exit = Vector2Int.FloorToInt(exitPosition);
-            
-            PlaceBarrier(new Vector2Int(entrance.x, entrance.y - 1));
-            PlaceBarrier(new Vector2Int(exit.x, exit.y + 1));
-            
-            SpawnDoors(entrancePosition, exitPosition);
-            SpawnDiamond(map, entrance, exit);
+            InitializeLevel(sessionData.Map);
         }
         
         protected virtual void DisplayMap(IReadOnlyDungeonMap map)
@@ -115,7 +115,7 @@ namespace Gameplay.FloodEscape
         
         private void SpawnDoors(Vector2 entrancePosition, Vector2 exitPosition)
         {
-            DoorController entranceDoor = Instantiate(doorPrefab, entrancePosition, 
+            entranceDoor = Instantiate(doorPrefab, entrancePosition, 
                 Quaternion.identity);
             entranceDoor.SetOpen(true);
 
@@ -130,24 +130,76 @@ namespace Gameplay.FloodEscape
             Vector2Int diamondPosition = DiamondPlacement.FindPosition(
                 map, entrancePosition, exitPosition, targetDetourRatio);
             
-            GameObject diamond = Instantiate(diamondPrefab,
+            GameObject diamondObj = Instantiate(diamondPrefab,
                 new Vector3(diamondPosition.x + 0.5f, diamondPosition.y + 0.5f, 0f),
                 Quaternion.identity);
             
-            diamond.GetComponent<DiamondPickup>().Collected += OnDiamondCollected;
+            diamond = diamondObj.GetComponent<DiamondPickup>();
+            diamond.Collected += OnDiamondCollected;
         }
         
         private void OnDiamondCollected()
         {
             hasDiamond = true;
             exitDoor.SetOpen(true);
-            
-            Debug.Log("Diamond collected!");
         }
         
         private void OnExitEntered()
         {
-            Debug.Log("Level completed!");
+            DungeonMap newMap = sequenceGenerator.GenerateNext();
+            InitializeLevel(newMap);
+        }
+
+        private void InitializeLevel(IReadOnlyDungeonMap sourceMap)
+        {
+            CleanupLevel();
+            
+            DungeonMap gameplayMap = new DungeonMap(sourceMap);
+
+            Vector2 entrancePosition = CreateEntrance(gameplayMap);
+            Vector2 exitPosition = CreateExit(gameplayMap);
+            
+            map = gameplayMap;
+
+            DisplayMap(map);
+            playerController.transform.position = entrancePosition;
+            
+            Vector2Int entrance = Vector2Int.FloorToInt(entrancePosition);
+            Vector2Int exit = Vector2Int.FloorToInt(exitPosition);
+            
+            PlaceBarrier(new Vector2Int(entrance.x, entrance.y - 1));
+            PlaceBarrier(new Vector2Int(exit.x, exit.y + 1));
+            
+            SpawnDoors(entrancePosition, exitPosition);
+            SpawnDiamond(map, entrance, exit);
+        }
+        
+        private void CleanupLevel()
+        {
+            if (exitDoor != null)
+            {
+                exitDoor.Entered -= OnExitEntered;
+                exitDoor.gameObject.SetActive(false);
+                Destroy(exitDoor.gameObject);
+                exitDoor = null;
+            }
+
+            if (entranceDoor != null)
+            {
+                entranceDoor.gameObject.SetActive(false);
+                Destroy(entranceDoor.gameObject);
+                entranceDoor = null;
+            }
+
+            if (diamond != null)
+            {
+                diamond.Collected -= OnDiamondCollected;
+                diamond.gameObject.SetActive(false);
+                Destroy(diamond.gameObject);
+                diamond = null;
+            }
+
+            hasDiamond = false;
         }
     }
 }

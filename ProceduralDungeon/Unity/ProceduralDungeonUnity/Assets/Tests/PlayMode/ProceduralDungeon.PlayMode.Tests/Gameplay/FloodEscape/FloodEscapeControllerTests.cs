@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Linq;
 using Core;
+using Generation;
 using NUnit.Framework;
 using Session;
 using Tests.Mocks;
@@ -41,13 +42,15 @@ namespace Tests.Gameplay.FloodEscape
         public IEnumerator Start_WithDungeonMap_PreparesGameplayMap()
         {
             DungeonMap map = CreateTestMap();
-            SessionData.SetDungeonMap(map);
+            DungeonSessionData session = new DungeonSessionData(
+                map, 12345, MazeAlgorithm.RecursiveBacktracker);
+            SessionData.SetDungeonSessionData(session);
             PrepareController();
             
             yield return null;
 
             Assert.AreNotSame(map, controller.Map);
-            Assert.IsNull(SessionData.ConsumeDungeonMap());
+            Assert.IsNull(SessionData.ConsumeSessionData());
             Assert.AreEqual(TileType.Floor, controller.Map[2, 0]);
             Assert.AreEqual(TileType.Floor, controller.Map[2, 4]);
             Assert.AreEqual(new Vector3(2.5f, 0.5f, 0f), player.transform.position);
@@ -57,7 +60,7 @@ namespace Tests.Gameplay.FloodEscape
         public IEnumerator Start_WithoutDungeonMap_UsesDebugMapInEditor()
         {
             LogAssert.Expect(LogType.Warning,
-                "No dungeon map received. Using a debug map.");
+                "No dungeon session received. Using a debug map.");
             
             PrepareController();
             
@@ -69,7 +72,10 @@ namespace Tests.Gameplay.FloodEscape
         [UnityTest]
         public IEnumerator Start_SpawnsDoorsWithCorrectInitialStates()
         {
-            SessionData.SetDungeonMap(CreateTestMap());
+            DungeonMap map = CreateTestMap();
+            DungeonSessionData session = new DungeonSessionData(
+                map, 12345, MazeAlgorithm.RecursiveBacktracker);
+            SessionData.SetDungeonSessionData(session);
             PrepareController();
 
             yield return null;
@@ -84,7 +90,10 @@ namespace Tests.Gameplay.FloodEscape
         [UnityTest]
         public IEnumerator Start_SpawnsDiamondAtValidPosition()
         {
-            SessionData.SetDungeonMap(CreateTestMap());
+            DungeonMap map = CreateTestMap();
+            DungeonSessionData session = new DungeonSessionData(
+                map, 12345, MazeAlgorithm.RecursiveBacktracker);
+            SessionData.SetDungeonSessionData(session);
             PrepareController();
 
             yield return null;
@@ -103,7 +112,10 @@ namespace Tests.Gameplay.FloodEscape
         [UnityTest]
         public IEnumerator CollectDiamond_OpensExitDoor()
         {
-            SessionData.SetDungeonMap(CreateTestMap());
+            DungeonMap map = CreateTestMap();
+            DungeonSessionData session = new DungeonSessionData(
+                map, 12345, MazeAlgorithm.RecursiveBacktracker);
+            SessionData.SetDungeonSessionData(session);
             PrepareController();
 
             yield return null;
@@ -125,7 +137,9 @@ namespace Tests.Gameplay.FloodEscape
         public IEnumerator Start_PlacesBarriersOutsideEntranceAndExit()
         {
             DungeonMap testMap = CreateTestMap();
-            SessionData.SetDungeonMap(testMap);
+            DungeonSessionData session = new DungeonSessionData(
+                testMap, 12345, MazeAlgorithm.RecursiveBacktracker);
+            SessionData.SetDungeonSessionData(session);
 
             PrepareController();
 
@@ -139,6 +153,90 @@ namespace Tests.Gameplay.FloodEscape
                     new Vector2Int(2, 5)
                 })
             );
+        }
+        
+        [UnityTest]
+        public IEnumerator EnterExit_GeneratesNextLevelAndMovesPlayer()
+        {
+            DungeonMap map = CreateTestMap();
+            SessionData.SetDungeonSessionData(new DungeonSessionData(
+                map, 12345, MazeAlgorithm.RecursiveBacktracker));
+
+            PrepareController();
+            yield return null;
+
+            IReadOnlyDungeonMap firstMap = controller.Map;
+
+            DoorController exit = FindSpawnedDoor(new Vector3(2.5f, 4.5f));
+            DiamondPickup diamond = FindSpawnedDiamond();
+
+            player.transform.position = diamond.transform.position;
+            yield return new WaitForFixedUpdate();
+
+            Assert.AreSame(openSprite, exit.GetComponent<SpriteRenderer>().sprite);
+
+            player.transform.position = exit.transform.position;
+            yield return new WaitForFixedUpdate();
+
+            Assert.AreNotSame(firstMap, controller.Map);
+            Assert.AreEqual(map.Width, controller.Map.Width);
+            Assert.AreEqual(map.Height, controller.Map.Height);
+
+            Vector2Int playerTile = Vector2Int.FloorToInt(player.transform.position);
+
+            Assert.AreEqual(0, playerTile.y);
+            Assert.AreEqual(TileType.Floor, controller.Map[playerTile.x, playerTile.y]);
+        }
+        
+        [UnityTest]
+        public IEnumerator EnterExit_ReplacesLevelObjectsAndResetsExit()
+        {
+            DungeonMap map = CreateTestMap();
+            SessionData.SetDungeonSessionData(new DungeonSessionData(
+                map, 12345, MazeAlgorithm.RecursiveBacktracker));
+
+            PrepareController();
+            yield return null;
+
+            DoorController oldEntrance = FindSpawnedDoor(new Vector3(2.5f, 0.5f));
+            DoorController oldExit = FindSpawnedDoor(new Vector3(2.5f, 4.5f));
+            DiamondPickup oldDiamond = FindSpawnedDiamond();
+
+            player.transform.position = oldDiamond.transform.position;
+            yield return new WaitForFixedUpdate();
+
+            player.transform.position = oldExit.transform.position;
+            yield return new WaitForFixedUpdate();
+
+            Assert.IsFalse(oldEntrance.gameObject.activeSelf);
+            Assert.IsFalse(oldExit.gameObject.activeSelf);
+
+            yield return null;
+
+            Assert.IsTrue(oldEntrance == null);
+            Assert.IsTrue(oldExit == null);
+            Assert.IsTrue(oldDiamond == null);
+
+            DoorController[] doors = Object.FindObjectsByType<DoorController>(
+                FindObjectsSortMode.None);
+
+            DoorController[] spawnedDoors = doors
+                .Where(door => door != doorPrefab)
+                .ToArray();
+
+            Assert.AreEqual(2, spawnedDoors.Length);
+
+            DoorController newExit = spawnedDoors
+                .Single(door => door.transform.position.y > 1f);
+
+            Assert.AreSame(closedSprite, newExit.GetComponent<SpriteRenderer>().sprite);
+
+            DiamondPickup newDiamond = FindSpawnedDiamond();
+
+            player.transform.position = newDiamond.transform.position;
+            yield return new WaitForFixedUpdate();
+
+            Assert.AreSame(openSprite, newExit.GetComponent<SpriteRenderer>().sprite);
         }
         
         [TearDown]

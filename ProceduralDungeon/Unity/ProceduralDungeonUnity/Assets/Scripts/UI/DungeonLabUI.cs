@@ -58,15 +58,17 @@ namespace UI
 
         private const float PlaybackInterval = 0.1f;
 
-        private IReadOnlyDungeonMap generatedMap;
-        
         private GenerationHistory currentHistory;
         private int currentStep;
 
         private float playbackSpeed = 1f;
         private Coroutine playbackCoroutine;
+
+        private GenerationResult generationResult;
+        private MazeAlgorithm generatedAlgorithm;
+        private int generatedSeed;
         
-        public IReadOnlyDungeonMap GeneratedMap => generatedMap;
+        public IReadOnlyDungeonMap GeneratedMap => generationResult?.Map;
 
         void Start()
         {
@@ -164,21 +166,19 @@ namespace UI
         {
             StopPlayback();
             
-            MazeAlgorithm algorithm = (MazeAlgorithm)algorithmDropdown.value;
+            generatedAlgorithm = (MazeAlgorithm)algorithmDropdown.value;
 
             int width = ReadSize(widthInput, defaultWidth);
             int height = ReadSize(heightInput, defaultHeight);
-            int seed = ReadSeed();
+            generatedSeed = ReadSeed();
             bool recordHistory = ReadRecordHistory();
 
-            GenerationResult generationResult =
-                dungeonController.GenerateDungeon(algorithm, width, height, seed, recordHistory);
+            generationResult = dungeonController.GenerateDungeon(generatedAlgorithm, width, height, generatedSeed, recordHistory);
             
             SetGenerationResult(generationResult);
-            ShowGenerationInfo(generationResult, algorithm, width, height, seed);
+            ShowGenerationInfo(generationResult, generatedAlgorithm, width, height, generatedSeed);
 
-            generatedMap = generationResult?.Map;
-            playButton.interactable = generatedMap != null;
+            playButton.interactable = generationResult?.Map != null;
         }
 
         public void OnPlaybackSpeedChanged(int index)
@@ -220,9 +220,14 @@ namespace UI
 
         public void OnPlayButtonClicked()
         {
-            string selectedGameplay = gameplayDropdown.options[gameplayDropdown.value].text;
+            if (generationResult?.Map == null)
+                return;
             
-            SessionData.SetDungeonMap(generatedMap);
+            string selectedGameplay = gameplayDropdown.options[gameplayDropdown.value].text;
+
+            DungeonSessionData sessionData = new DungeonSessionData(generationResult.Map, 
+                generatedSeed, generatedAlgorithm);
+            SessionData.SetDungeonSessionData(sessionData);
             
             switch (selectedGameplay)
             {

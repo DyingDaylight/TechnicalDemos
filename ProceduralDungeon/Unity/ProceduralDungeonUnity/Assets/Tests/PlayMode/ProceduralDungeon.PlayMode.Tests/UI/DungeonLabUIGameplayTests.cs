@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using Generation;
 using NUnit.Framework;
 using Session;
 using TMPro;
@@ -37,8 +38,36 @@ namespace Tests.UI
 
             dungeonLabUI.OnPlayButtonClicked();
             
-            Assert.AreSame(dungeonLabUI.GeneratedMap, SessionData.ConsumeDungeonMap());
+            DungeonSessionData session = SessionData.ConsumeSessionData();
+
+            Assert.IsNotNull(session);
+            Assert.AreSame(dungeonLabUI.GeneratedMap, session.Map);
+            Assert.AreEqual(12345, session.Seed);
+            Assert.AreEqual(MazeAlgorithm.RecursiveBacktracker, session.Algorithm);
             Assert.AreEqual("FloodEscape", dungeonLabUI.LoadedSceneName);
+        }
+        
+        [Test]
+        public void OnPlayButtonClicked_AfterChangingSettings_UsesGeneratedDungeonSettings()
+        {
+            GenerateWithHistory();
+
+            // change settings without generating a new map
+            seedInput.text = "9999";
+            algorithmDropdown.value = (int)MazeAlgorithm.RandomizedPrim;
+
+            gameplayDropdown.options.Clear();
+            gameplayDropdown.options.Add(new TMP_Dropdown.OptionData("Flood Escape"));
+            gameplayDropdown.value = 0;
+
+            dungeonLabUI.OnPlayButtonClicked();
+
+            DungeonSessionData session = SessionData.ConsumeSessionData();
+
+            Assert.IsNotNull(session);
+            Assert.AreSame(dungeonLabUI.GeneratedMap, session.Map);
+            Assert.AreEqual(12345, session.Seed);
+            Assert.AreEqual(MazeAlgorithm.RecursiveBacktracker, session.Algorithm);
         }
         
     }

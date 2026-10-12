@@ -1,31 +1,25 @@
-﻿using Core;
-
+﻿
 namespace Session
 {
     public static class SessionData
     {
-        private static IReadOnlyDungeonMap dungeonMap;
-
-        public static void SetDungeonMap(IReadOnlyDungeonMap dungeonMap)
+        private static DungeonSessionData sessionData;
+        
+        public static void SetDungeonSessionData(DungeonSessionData sessionData)
         {
-            SessionData.dungeonMap = dungeonMap;
+            SessionData.sessionData = sessionData;
         }
 
-        public static IReadOnlyDungeonMap ConsumeDungeonMap()
+        public static DungeonSessionData ConsumeSessionData()
         {
-            IReadOnlyDungeonMap map = dungeonMap;
-            dungeonMap = null;
-            return map;
-        }
-
-        private static void ClearDungeonMap()
-        {
-            dungeonMap = null;
+            DungeonSessionData sessionData = SessionData.sessionData;
+            SessionData.sessionData = null;
+            return sessionData;
         }
 
         public static void Clear()
         {
-            ClearDungeonMap();
+            sessionData = null;
         }
     }
 }
