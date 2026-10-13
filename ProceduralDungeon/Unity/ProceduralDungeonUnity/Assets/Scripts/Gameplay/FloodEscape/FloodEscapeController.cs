@@ -13,7 +13,8 @@ namespace Gameplay.FloodEscape
         [SerializeField] private DungeonTilemapRenderer tilemapRenderer;
         [SerializeField] private CameraFitter cameraFitter;
         [SerializeField] private PlayerController playerController;
-
+        [SerializeField] private WaterRenderer waterRenderer;
+        
         [Header("Diamond Settings")]
         [SerializeField] private float targetDetourRatio = 0.5f;
 
@@ -172,6 +173,15 @@ namespace Gameplay.FloodEscape
             
             SpawnDoors(entrancePosition, exitPosition);
             SpawnDiamond(map, entrance, exit);
+            
+            // TODO Remove and clean
+            WaterSimulation simulation = new WaterSimulation(gameplayMap);
+            simulation[entrance.x, 0] = 1;
+            simulation[entrance.x, 1] = 1;
+            simulation[entrance.x + 1, 1] = 1;
+            simulation[entrance.x + 2, 1] = 0.5f;
+            waterRenderer.Initialize(simulation);
+            waterRenderer.Refresh();
         }
         
         private void CleanupLevel()
