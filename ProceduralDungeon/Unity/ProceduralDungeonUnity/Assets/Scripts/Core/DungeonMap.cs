@@ -45,11 +45,6 @@
             get => map[x, y];
             set => map[x, y] = value;
         }
-
-        public bool IsInside(int x, int y)
-        {
-            return x >= 0 && x < Width &&
-                   y >= 0 && y < Height;
-        }
+        
     }
 }

@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Linq;
 using Core;
+using Gameplay.FloodEscape.Gameplay;
+using Gameplay.FloodEscape.Water;
 using Generation;
 using NUnit.Framework;
 using Session;
@@ -19,6 +21,7 @@ namespace Tests.Gameplay.FloodEscape
         private PlayerController player;
         private DoorController doorPrefab;
         private DiamondPickup diamondPrefab;
+        private GameObject waterObject;
 
         private Texture2D doorTexture;
         private Sprite openSprite;
@@ -239,6 +242,97 @@ namespace Tests.Gameplay.FloodEscape
             Assert.AreSame(openSprite, newExit.GetComponent<SpriteRenderer>().sprite);
         }
         
+        [UnityTest]
+        public IEnumerator Start_InitializesWaterSimulation()
+        {
+            DungeonMap map = CreateTestMap();
+
+            SessionData.SetDungeonSessionData(new DungeonSessionData(
+                map, 12345, MazeAlgorithm.RecursiveBacktracker));
+
+            PrepareController();
+
+            yield return null;
+
+            Assert.IsNotNull(waterObject.transform.Find("Water_2_0"));
+            Assert.IsNotNull(waterObject.transform.Find("Water_2_1"));
+            Assert.IsNotNull(waterObject.transform.Find("Water_2_2"));
+            Assert.IsNotNull(waterObject.transform.Find("Water_2_3"));
+            Assert.IsNotNull(waterObject.transform.Find("Water_2_4"));
+
+            Assert.IsNull(waterObject.transform.Find("Water_0_0"));
+        }
+        
+        [UnityTest]
+        public IEnumerator Update_AdvancesWaterSimulation()
+        {
+            DungeonMap map = CreateTestMap();
+
+            SessionData.SetDungeonSessionData(new DungeonSessionData(
+                map, 12345, MazeAlgorithm.RecursiveBacktracker));
+
+            PrepareController();
+
+            SerializedObject serialized = new SerializedObject(controller);
+            serialized.FindProperty("waterStepInterval").floatValue = 0.02f;
+            serialized.FindProperty("waterInflowPerStep").floatValue = 0.1f;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+
+            yield return null;
+
+            Transform waterCell = waterObject.transform.Find("Water_2_0");
+
+            Assert.IsNotNull(waterCell);
+
+            yield return new WaitForSeconds(0.1f);
+
+            Assert.IsTrue(waterCell.gameObject.activeSelf);
+            Assert.Greater(waterCell.localScale.y, 0f);
+        }
+        
+        [UnityTest]
+        public IEnumerator EnterExit_ResetsWaterSimulation()
+        {
+            DungeonMap map = CreateTestMap();
+
+            SessionData.SetDungeonSessionData(new DungeonSessionData(
+                map, 12345, MazeAlgorithm.RecursiveBacktracker));
+
+            PrepareController();
+
+            SerializedObject serialized = new SerializedObject(controller);
+            serialized.FindProperty("waterStepInterval").floatValue = 0.02f;
+            serialized.FindProperty("waterInflowPerStep").floatValue = 0.1f;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+
+            yield return null;
+
+            Transform oldWater = waterObject.transform.Find("Water_2_0");
+
+            Assert.IsNotNull(oldWater);
+
+            yield return new WaitForSeconds(0.1f);
+
+            Assert.IsTrue(oldWater.gameObject.activeSelf);
+
+            DoorController exit = FindSpawnedDoor(new Vector3(2.5f, 4.5f));
+            DiamondPickup diamond = FindSpawnedDiamond();
+
+            player.transform.position = diamond.transform.position;
+            yield return new WaitForFixedUpdate();
+
+            player.transform.position = exit.transform.position;
+            yield return new WaitForFixedUpdate();
+
+            Assert.AreNotSame(map, controller.Map);
+
+            // The previous level's water objects should be deactivated.
+            Assert.IsFalse(oldWater.gameObject.activeSelf);
+
+            // The new level should have its own water objects.
+            Assert.Greater(waterObject.transform.childCount, 0);
+        }
+        
         [TearDown]
         public void TearDown()
         {
@@ -260,6 +354,7 @@ namespace Tests.Gameplay.FloodEscape
             Object.DestroyImmediate(openSprite);
             Object.DestroyImmediate(closedSprite);
             Object.DestroyImmediate(doorTexture);
+            Object.DestroyImmediate(waterObject);
             
             helper.Dispose();
             
@@ -299,16 +394,20 @@ namespace Tests.Gameplay.FloodEscape
             GameObject controllerObject = new GameObject("FloodEscapeController");
             controller = controllerObject.AddComponent<FloodEscapeControllerMock>();
             
+            waterObject = new GameObject("WaterRenderer");
+            WaterRenderer waterRenderer = waterObject.AddComponent<WaterRenderer>();
             
             doorPrefab = helper.CreateDoor(openSprite, closedSprite);
             diamondPrefab = helper.CreateDiamond();
-            
+
             SerializedObject serialized = new SerializedObject(controller);
 
             serialized.FindProperty("playerController").objectReferenceValue = player;
             serialized.FindProperty("doorPrefab").objectReferenceValue = doorPrefab;
             serialized.FindProperty("diamondPrefab").objectReferenceValue = diamondPrefab.gameObject;
-            
+            serialized.FindProperty("waterRenderer").objectReferenceValue = waterRenderer;
+
+
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
     }

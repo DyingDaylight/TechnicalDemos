@@ -4,7 +4,7 @@ using Analysis;
 using Core;
 using UnityEngine;
 
-namespace Gameplay.FloodEscape
+namespace Gameplay.FloodEscape.Generation
 {
     public static class DiamondPlacement
     {

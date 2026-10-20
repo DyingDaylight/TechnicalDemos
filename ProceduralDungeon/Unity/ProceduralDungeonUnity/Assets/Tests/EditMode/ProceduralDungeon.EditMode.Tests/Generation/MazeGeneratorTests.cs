@@ -154,7 +154,7 @@ namespace Tests.Generation
             throw new InvalidOperationException("Generated maze contains no floor tiles.");
         }
         
-        private int CountReachableFloorTiles(DungeonMap map, Vector2Int start)
+        private int CountReachableFloorTiles(IReadOnlyDungeonMap map, Vector2Int start)
         {
             Queue<Vector2Int> queue = new Queue<Vector2Int>();
             HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
@@ -186,7 +186,7 @@ namespace Tests.Generation
             return visited.Count;
         }
         
-        private int CountFloorConnections(DungeonMap map)
+        private int CountFloorConnections(IReadOnlyDungeonMap map)
         {
             int connections = 0;
 

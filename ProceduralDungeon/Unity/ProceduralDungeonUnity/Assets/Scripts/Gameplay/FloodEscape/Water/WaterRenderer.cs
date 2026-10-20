@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Gameplay.FloodEscape
+namespace Gameplay.FloodEscape.Water
 {
     public class WaterRenderer : MonoBehaviour
     {
@@ -11,6 +11,8 @@ namespace Gameplay.FloodEscape
 
         public void Initialize(WaterSimulation simulation)
         {
+            Clear();
+            
             this.simulation = simulation;
 
             waterObjects = new GameObject[simulation.Width, simulation.Height];
@@ -29,6 +31,9 @@ namespace Gameplay.FloodEscape
         
         public void Refresh()
         {
+            if (simulation == null || waterObjects == null)
+                return;
+            
             for (int x = 0; x < simulation.Width; x++)
             {
                 for (int y = 0; y < simulation.Height; y++)
@@ -46,6 +51,13 @@ namespace Gameplay.FloodEscape
             }
         }
         
+        public void Clear()
+        {
+            ClearWaterObjects();
+            waterObjects = null;
+            simulation = null;
+        }
+        
         private GameObject CreateWaterCell(int x, int y)
         {
             GameObject waterObject = new GameObject($"Water_{x}_{y}");
@@ -56,8 +68,6 @@ namespace Gameplay.FloodEscape
             spriteRenderer.sprite = waterSprite;
             spriteRenderer.color = new Color(1f, 1f, 1f, 0.5f);
             spriteRenderer.sortingLayerName = "Water";
-
-            //waterObject.transform.localScale = new Vector3(1f, level, 1f);
             
             waterObject.SetActive(false);
             return waterObject;
@@ -74,6 +84,51 @@ namespace Gameplay.FloodEscape
                         waterObject.SetActive(false);
                         Destroy(waterObject);
                     }
+                }
+            }
+        }
+        
+        private void OnDrawGizmos()
+        {
+            if (simulation == null)
+                return;
+
+            Color[] colors =
+            {
+                Color.magenta,
+                Color.yellow,
+                Color.green,
+                Color.cyan,
+                Color.red,
+                Color.blue
+            };
+
+            for (int i = 0; i < simulation.Fronts.Count; i++)
+            {
+                WaterFront front = simulation.Fronts[i];
+
+                Gizmos.color = colors[i % colors.Length];
+
+                foreach (Vector2Int cell in front.Cells)
+                {
+                    Vector3 position = new Vector3(
+                        cell.x + 0.5f,
+                        cell.y + 0.5f,
+                        0f
+                    );
+
+                    Gizmos.DrawWireCube(position, Vector3.one * 0.8f);
+
+#if UNITY_EDITOR
+                    string opening = front.IncomingFall.HasValue
+                        ? front.IncomingFall.Value.Opening.ToString()
+                        : "none";
+
+                    UnityEditor.Handles.Label(
+                        position + Vector3.up * 0.4f,
+                        $"F{i} E:{front.EntryPoint} Opening:{opening}"
+                    );
+#endif
                 }
             }
         }

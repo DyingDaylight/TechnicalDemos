@@ -1,7 +1,8 @@
 ﻿using Core;
 using Generation;
+using UnityEngine;
 
-namespace Gameplay.FloodEscape
+namespace Gameplay.FloodEscape.Generation
 {
     public class DungeonSequenceGenerator
     {
@@ -30,6 +31,7 @@ namespace Gameplay.FloodEscape
             GenerationResult generationResult = mapGenerator.Generate(width, height, RecordHistory);
             
             seed = nextSeed;
+            Debug.Log($"Map generated with seed {seed}");
             return generationResult.Map;
         }
 

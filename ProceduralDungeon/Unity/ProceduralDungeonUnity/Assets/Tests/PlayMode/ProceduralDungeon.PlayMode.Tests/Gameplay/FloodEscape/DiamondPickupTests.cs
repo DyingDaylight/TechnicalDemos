@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using Gameplay.FloodEscape.Gameplay;
 using NUnit.Framework;
 using Tests.Shared.Gameplay.FloodEscape;
 using UnityEngine;

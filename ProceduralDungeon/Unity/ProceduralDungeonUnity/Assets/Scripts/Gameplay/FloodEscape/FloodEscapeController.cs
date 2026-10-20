@@ -1,6 +1,10 @@
 ﻿using System;
 using Core;
 using DebugTools;
+using Gameplay.FloodEscape.Gameplay;
+using Gameplay.FloodEscape.Generation;
+using Gameplay.FloodEscape.Rendering;
+using Gameplay.FloodEscape.Water;
 using Generation;
 using Session;
 using UI;
@@ -15,20 +19,26 @@ namespace Gameplay.FloodEscape
         [SerializeField] private PlayerController playerController;
         [SerializeField] private WaterRenderer waterRenderer;
         
-        [Header("Diamond Settings")]
+        [Header("Diamond")]
         [SerializeField] private float targetDetourRatio = 0.5f;
 
         [Header("Prefabs")]
         [SerializeField] private DoorController doorPrefab;
         [SerializeField] private GameObject diamondPrefab;
-
-        protected IReadOnlyDungeonMap map;
-
+        
+        [Header("Water")]
+        [SerializeField] private float waterStepInterval = 0.1f;
+        [SerializeField] private float waterInflowPerStep = 0.1f;
+        
+        private IReadOnlyDungeonMap map;
+        
         private DungeonSequenceGenerator sequenceGenerator;
         private DoorController entranceDoor;
         private DoorController exitDoor;
         private DiamondPickup diamond;
-        private bool hasDiamond;
+
+        private WaterSimulation simulation;
+        private float waterTimer;
         
         public IReadOnlyDungeonMap Map => map;
         
@@ -61,7 +71,28 @@ namespace Gameplay.FloodEscape
             
             InitializeLevel(sessionData.Map);
         }
+
+        private void Update()
+        {
+            if (simulation == null || waterStepInterval <= 0f)
+                return;
+
+            waterTimer += Time.deltaTime;
+
+            while (waterTimer >= waterStepInterval)
+            {
+                waterTimer -= waterStepInterval;
+                simulation.Step();
+            }
+
+            waterRenderer.Refresh();
+        }
         
+        private void OnDestroy()
+        {
+            CleanupLevel();
+        }
+
         protected virtual void DisplayMap(IReadOnlyDungeonMap map)
         {
             tilemapRenderer.Draw(map);
@@ -77,36 +108,34 @@ namespace Gameplay.FloodEscape
             tilemapRenderer.PlaceBarrier(position);
         }
         
-        private Vector2 CreateEntrance(DungeonMap map)
+        private Vector2 CreateEntrance(DungeonMap mutableMap)
         {
-            return CreateOpening(map, 1, 0);
+            return CreateOpening(mutableMap, 1, 0);
         }
 
-        private Vector2 CreateExit(DungeonMap map)
+        private Vector2 CreateExit(DungeonMap mutableMap)
         {
-            return CreateOpening(map, map.Height - 2, map.Height - 1);
+            return CreateOpening(mutableMap, mutableMap.Height - 2, mutableMap.Height - 1);
         }
 
-        private Vector2 CreateOpening(DungeonMap map, int innerY, int borderY)
+        private Vector2 CreateOpening(DungeonMap mutableMap, int innerY, int borderY)
         {
-            int centerX = map.Width / 2;
+            int centerX = mutableMap.Width / 2;
 
-            for (int offset = 0; offset < map.Width; offset++)
+            for (int offset = 0; offset < mutableMap.Width; offset++)
             {
                 int rightX = centerX + offset;
                 int leftX = centerX - offset;
 
-                if (map.IsInside(rightX, innerY) &&
-                    map[rightX, innerY] == TileType.Floor)
+                if (rightX < mutableMap.Width && mutableMap[rightX, innerY] == TileType.Floor)
                 {
-                    map[rightX, borderY] = TileType.Floor;
+                    mutableMap[rightX, borderY] = TileType.Floor;
                     return new Vector2(rightX + 0.5f, borderY + 0.5f);
                 }
 
-                if (map.IsInside(leftX, innerY) &&
-                    map[leftX, innerY] == TileType.Floor)
+                if (leftX >= 0 && mutableMap[leftX, innerY] == TileType.Floor)
                 {
-                    map[leftX, borderY] = TileType.Floor;
+                    mutableMap[leftX, borderY] = TileType.Floor;
                     return new Vector2(leftX + 0.5f, borderY + 0.5f);
                 }
             }
@@ -125,8 +154,7 @@ namespace Gameplay.FloodEscape
             exitDoor.Entered += OnExitEntered;
         }
         
-        private void SpawnDiamond(IReadOnlyDungeonMap map, Vector2Int entrancePosition,
-            Vector2Int exitPosition)
+        private void SpawnDiamond(Vector2Int entrancePosition, Vector2Int exitPosition)
         {
             Vector2Int diamondPosition = DiamondPlacement.FindPosition(
                 map, entrancePosition, exitPosition, targetDetourRatio);
@@ -141,7 +169,6 @@ namespace Gameplay.FloodEscape
         
         private void OnDiamondCollected()
         {
-            hasDiamond = true;
             exitDoor.SetOpen(true);
         }
         
@@ -172,16 +199,15 @@ namespace Gameplay.FloodEscape
             PlaceBarrier(new Vector2Int(exit.x, exit.y + 1));
             
             SpawnDoors(entrancePosition, exitPosition);
-            SpawnDiamond(map, entrance, exit);
+            SpawnDiamond(entrance, exit);
             
-            // TODO Remove and clean
-            WaterSimulation simulation = new WaterSimulation(gameplayMap);
-            simulation[entrance.x, 0] = 1;
-            simulation[entrance.x, 1] = 1;
-            simulation[entrance.x + 1, 1] = 1;
-            simulation[entrance.x + 2, 1] = 0.5f;
+            simulation = new WaterSimulation( gameplayMap, entrance.x, 0,
+                waterInflowPerStep);
+
             waterRenderer.Initialize(simulation);
             waterRenderer.Refresh();
+
+            waterTimer = 0f;
         }
         
         private void CleanupLevel()
@@ -209,7 +235,9 @@ namespace Gameplay.FloodEscape
                 diamond = null;
             }
 
-            hasDiamond = false;
+            waterRenderer.Clear();
+            simulation = null;
+            waterTimer = 0f;
         }
     }
 }

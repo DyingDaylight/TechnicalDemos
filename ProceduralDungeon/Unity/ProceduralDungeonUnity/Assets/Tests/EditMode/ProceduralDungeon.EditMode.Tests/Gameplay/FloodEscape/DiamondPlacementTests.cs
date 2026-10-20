@@ -1,6 +1,7 @@
 ﻿using System;
 using Core;
 using Gameplay.FloodEscape;
+using Gameplay.FloodEscape.Generation;
 using NUnit.Framework;
 using UnityEngine;
 

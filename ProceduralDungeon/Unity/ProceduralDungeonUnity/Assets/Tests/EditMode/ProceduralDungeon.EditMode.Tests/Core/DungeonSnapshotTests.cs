@@ -56,5 +56,21 @@ namespace Tests.Core
             // Assert
             Assert.AreNotEqual(TileType.Wall, snapshot[2, 1]);
         }
+        
+        [TestCase(0, 0, true)]
+        [TestCase(2, 2, true)]
+        [TestCase(1, 1, true)]
+        [TestCase(-1, 2, false)]
+        [TestCase(3, 2, false)]
+        [TestCase(1, -1, false)]
+        [TestCase(2, 3, false)]
+        public void IsInside_ReturnsExpectedResult(int x, int y, bool expected)
+        {
+            // Arrange
+            IReadOnlyDungeonMap snapshot = new DungeonSnapshot(map);
+            
+            // Act and Assert
+            Assert.AreEqual(expected, snapshot.IsInside(x, y));
+        }
     }
 }

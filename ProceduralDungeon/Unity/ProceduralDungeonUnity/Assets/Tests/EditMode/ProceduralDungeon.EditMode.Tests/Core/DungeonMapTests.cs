@@ -69,11 +69,10 @@ namespace Tests.Core
         public void IsInside_ReturnsExpectedResult(int x, int y, bool expected)
         {
             // Arrange
-            DungeonMap map = new DungeonMap(10, 8);
+            IReadOnlyDungeonMap map = new DungeonMap(10, 8);
             
             // Act and Assert
             Assert.AreEqual(expected, map.IsInside(x, y));
         }
-        
     }
 }
