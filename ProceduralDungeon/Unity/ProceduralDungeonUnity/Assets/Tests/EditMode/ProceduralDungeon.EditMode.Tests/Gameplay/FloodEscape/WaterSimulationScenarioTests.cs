@@ -709,5 +709,151 @@ namespace Tests.Gameplay.FloodEscape
             Assert.That(simulation[1, 2], Is.EqualTo(1f).Within(0.0001f));
             Assert.Greater(simulation[3, 4], 0f);
         }
+        
+        /*
+         * Tests that water does not remain undistributed when
+         * all connected cells have enough capacity to hold it.
+         *
+         * Map layout (# = Wall, . = Floor, S = Source):
+         *
+         * y = 2     # # # # #
+         * y = 1     # . . . #
+         * y = 0     # . S . #
+         *
+         * Six connected floor cells with a total capacity of 6.
+         * After 20 steps at 0.5 water per step, all cells
+         * should be completely filled.
+         */
+        [Test]
+        public void Step_FillsAllReachableCellsWhenWaterIsAbundant()
+        {
+            DungeonMap testMap = new DungeonMap(5, 3);
+
+            for (int x = 1; x <= 3; x++)
+            {
+                testMap[x, 0] = TileType.Floor;
+                testMap[x, 1] = TileType.Floor;
+            }
+
+            WaterSimulation simulation = new WaterSimulation(testMap, 2, 0, 0.5f);
+
+            for (int i = 0; i < 20; i++)
+                simulation.Step();
+
+            for (int y = 0; y <= 1; y++)
+            {
+                for (int x = 1; x <= 3; x++)
+                {
+                    Assert.That(
+                        simulation[x, y],
+                        Is.EqualTo(1f).Within(0.0001f),
+                        $"Cell ({x}, {y}) was not completely filled.");
+                }
+            }
+        }
+        
+        /*
+         * Tests that water continues filling all reachable cells
+         * after falling into a lower reservoir.
+         *
+         * Map layout (# = Wall, . = Floor, S = Source):
+         *
+         *        x  0 1 2 3 4 5 6 7 8
+         *
+         * y = 4     # # # # # # # # #
+         * y = 3     # S . . . . # # #
+         * y = 2     # # # # . # # # #
+         * y = 1     # # # # . # . # #
+         * y = 0     # # # . . . . # #
+         *
+         * The map contains 12 floor cells.
+         * After 30 steps at 0.5 water per step, 15 units
+         * have entered the simulation.
+         *
+         * All reachable floor cells should be completely filled,
+         * with excess water remaining pending.
+         */
+        [Test]
+        public void Step_FillsAllReachableCellsAfterWaterfall()
+        {
+            DungeonMap testMap = new DungeonMap(9, 5);
+
+            for (int x = 1; x <= 5; x++)
+                testMap[x, 3] = TileType.Floor;
+
+            testMap[4, 2] = TileType.Floor;
+            testMap[4, 1] = TileType.Floor;
+            testMap[6, 1] = TileType.Floor;
+
+            for (int x = 3; x <= 6; x++)
+                testMap[x, 0] = TileType.Floor;
+
+            WaterSimulation simulation = new WaterSimulation(testMap, 1, 3, 0.5f);
+
+            for (int i = 0; i < 30; i++)
+                simulation.Step();
+
+            for (int y = 0; y < testMap.Height; y++)
+            {
+                for (int x = 0; x < testMap.Width; x++)
+                {
+                    if (testMap[x, y] != TileType.Floor)
+                        continue;
+
+                    Assert.That(
+                        simulation[x, y],
+                        Is.EqualTo(1f).Within(0.0001f),
+                        $"Cell ({x}, {y}) was not completely filled.");
+                }
+            }
+        }
+        
+        /*
+         * Tests that water continues filling reachable cells
+         * instead of accumulating as pending water after a fall.
+         *
+         * Map layout (# = Wall, . = Floor, S = Source):
+         *
+         *        x  0 1 2 3 4 5 6 7 8 9 10
+         *
+         * y = 4     # # # # # # # # # # #
+         * y = 3     # S . . . # # # # # #
+         * y = 2     # # # # . # # # # # #
+         * y = 1     # # # # . # # # # # #
+         * y = 0     # # # . . . . . . . #
+         *
+         * The map contains 13 floor cells.
+         * After 20 steps at 0.5 water per step, 10 units
+         * should be distributed without becoming stuck.
+         */
+        [Test]
+        public void Step_DoesNotAccumulatePendingWaterWhileReachableCellsAreEmpty()
+        {
+            DungeonMap testMap = new DungeonMap(11, 5);
+
+            for (int x = 1; x <= 4; x++)
+                testMap[x, 3] = TileType.Floor;
+
+            testMap[4, 2] = TileType.Floor;
+            testMap[4, 1] = TileType.Floor;
+
+            for (int x = 3; x <= 9; x++)
+                testMap[x, 0] = TileType.Floor;
+
+            WaterSimulation simulation = new WaterSimulation(testMap, 1, 3, 0.5f);
+
+            for (int i = 0; i < 20; i++)
+                simulation.Step();
+
+            float totalWater = 0f;
+
+            for (int y = 0; y < testMap.Height; y++)
+            {
+                for (int x = 0; x < testMap.Width; x++)
+                    totalWater += simulation[x, y];
+            }
+
+            Assert.That(totalWater, Is.EqualTo(10f).Within(0.0001f));
+        }
     }
 }

@@ -793,7 +793,7 @@ MonoBehaviour:
   targetDetourRatio: 0.5
   doorPrefab: {fileID: 3535276967034127886, guid: 1711f8f1c194dc0449dadbd81fe2a4b8, type: 3}
   diamondPrefab: {fileID: 7233151108711455934, guid: dc18fdc9eefaf26429727fb6a085c52c, type: 3}
-  waterStepInterval: 0.08
+  waterStepInterval: 0.03
   waterInflowPerStep: 0.1
 --- !u!4 &590359458
 Transform:

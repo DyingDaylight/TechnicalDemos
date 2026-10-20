@@ -160,6 +160,9 @@ namespace Gameplay.FloodEscape.Water
 
             while (pendingWater > epsilon)
             {
+                CompleteNearlyFullCells();
+                AdvanceFilledFronts();
+                
                 List<WaterFront> priorityFronts = GetLowestActiveFronts();
                 
                 if (priorityFronts.Count == 0)
@@ -169,7 +172,7 @@ namespace Gameplay.FloodEscape.Water
                 
                 pendingWater -= distributed;
                 
-                if (distributed <= epsilon)
+                if (distributed <= 0f)
                     break;
             }
         }
@@ -232,6 +235,44 @@ namespace Gameplay.FloodEscape.Water
             }
             
             return priorityFronts;
+        }
+        
+        private void AdvanceFilledFronts()
+        {
+            foreach (WaterFront front in fronts)
+            {
+                while (front.Cells.Count > 0)
+                {
+                    List<Vector2Int> horizontalFront = GetFrontTargets(front);
+
+                    if (horizontalFront.Count == 0)
+                        break;
+
+                    bool isFull = true;
+
+                    foreach (Vector2Int cell in horizontalFront)
+                    {
+                        if (waterLevels[cell.x, cell.y] < 1f)
+                        {
+                            isFull = false;
+                            break;
+                        }
+                    }
+
+                    if (!isFull)
+                        break;
+
+                    List<Vector2Int> upperFront = FindUpperCells(horizontalFront);
+
+                    if (front.IncomingFall.HasValue)
+                    {
+                        Vector2Int opening = front.IncomingFall.Value.Opening;
+                        upperFront.Remove(opening);
+                    }
+
+                    front.Cells = upperFront;
+                }
+            }
         }
 
         private float ProcessFront(WaterFront currentFront, float amount)
@@ -440,6 +481,33 @@ namespace Gameplay.FloodEscape.Water
             }
             
             return fallDestination;
+        }
+        
+        private void CompleteNearlyFullCells()
+        {
+            const float threshold = 0.99f;
+
+            for (int y = 0; y < Height; y++)
+            {
+                for (int x = 0; x < Width; x++)
+                {
+                    if (!CanContainWater(x, y))
+                        continue;
+
+                    float level = waterLevels[x, y];
+
+                    if (level < threshold || level >= 1f)
+                        continue;
+
+                    float missing = 1f - level;
+
+                    if (pendingWater < missing)
+                        continue;
+
+                    waterLevels[x, y] = 1f;
+                    pendingWater -= missing;
+                }
+            }
         }
     }
 }
