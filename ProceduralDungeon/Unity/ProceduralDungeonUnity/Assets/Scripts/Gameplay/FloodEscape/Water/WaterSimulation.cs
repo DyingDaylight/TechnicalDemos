@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using Core;
 using UnityEngine;
 
@@ -7,8 +8,11 @@ namespace Gameplay.FloodEscape.Water
 {
     public class WaterSimulation
     {
+        private const float Epsilon = 0.0001f;
+        
         private readonly IReadOnlyDungeonMap dungeonMap;
         private readonly List<WaterFront> fronts = new();
+        private readonly WaterFallDirection[,] fallDirections;
         private readonly float[,] waterLevels;
         private readonly float[,] waterChanges;
         private readonly float[,] outgoingWater;
@@ -26,6 +30,7 @@ namespace Gameplay.FloodEscape.Water
             waterLevels = new float[map.Width, map.Height];
             waterChanges = new float[map.Width, map.Height];
             outgoingWater = new float[map.Width, map.Height];
+            fallDirections = new WaterFallDirection[map.Width, map.Height];
             
             if (sourceX < 0 || sourceX >= map.Width ||
                 sourceY < 0 || sourceY >= map.Height ||
@@ -60,6 +65,8 @@ namespace Gameplay.FloodEscape.Water
         
         public void Step()
         {
+            Array.Clear(fallDirections, 0, fallDirections.Length);
+            
             CalculateHorizontalFlow();
             ApplyHorizontalFlow();
             
@@ -67,6 +74,13 @@ namespace Gameplay.FloodEscape.Water
             
             pendingWater += inflowPerStep;
             DistributeWater();
+
+            //UpdateFallDirections();
+        }
+        
+        public WaterFallDirection GetFallDirection(int x, int y)
+        {
+            return fallDirections[x, y];
         }
         
         private void CalculateHorizontalFlow()
@@ -85,6 +99,11 @@ namespace Gameplay.FloodEscape.Water
 
                         float difference = leftLevel - rightLevel;
                         float flow = difference * 0.5f;
+                        
+                        int sourceX = flow > 0f ? x : x + 1;
+
+                        if (!CanFlowHorizontallyFrom(sourceX, y))
+                            continue;
                         
                         if (flow > 0f)
                             outgoingWater[x, y] += flow;
@@ -105,16 +124,24 @@ namespace Gameplay.FloodEscape.Water
                         
                         float difference = leftLevel - rightLevel;
                         float flow = difference * 0.5f;
-
+                        
                         if (flow == 0f)
                             continue;
 
                         int sourceX = flow > 0f ? x : x + 1;
+                        
+                        if (!CanFlowHorizontallyFrom(sourceX, y))
+                            continue;
 
                         float scale = Math.Min(1f,
                             waterLevels[sourceX, y] / outgoingWater[sourceX, y]);
 
                         flow *= scale;
+                        
+                        if (flow > 0)
+                            fallDirections[x + 1, y] |= WaterFallDirection.FromLeft;
+                        else if (flow < 0)
+                            fallDirections[x, y] |= WaterFallDirection.FromRight;
                         
                         waterChanges[x, y] -= flow;
                         waterChanges[x + 1, y] += flow;
@@ -156,9 +183,7 @@ namespace Gameplay.FloodEscape.Water
         
         private void DistributeWater()
         {
-            const float epsilon = 0.0001f;
-
-            while (pendingWater > epsilon)
+            while (pendingWater > Epsilon)
             {
                 CompleteNearlyFullCells();
                 AdvanceFilledFronts();
@@ -390,13 +415,15 @@ namespace Gameplay.FloodEscape.Water
         private int FindLowestUnfilledLevel(WaterFront front)
         {
             int minY = int.MaxValue;
+            
+            List<Vector2Int> targets = GetFrontTargets(front);
 
-            foreach (Vector2Int cell in front.Cells)
+            foreach (Vector2Int target in targets)
             {
-                if (waterLevels[cell.x, cell.y] < 1f)
-                    minY = Mathf.Min(minY, cell.y);
+                if (waterLevels[target.x, target.y] < 1f)
+                    minY = Mathf.Min(minY, target.y);
             }
-
+                
             return minY;
         }
         
@@ -508,6 +535,59 @@ namespace Gameplay.FloodEscape.Water
                     pendingWater -= missing;
                 }
             }
+        }
+        
+        private void UpdateFallDirections()
+        {
+            Array.Clear(fallDirections, 0, fallDirections.Length);
+
+            foreach (WaterFront front in fronts)
+            {
+                if (!front.IncomingFall.HasValue)
+                    continue;
+
+                Vector2Int opening = front.IncomingFall.Value.Opening;
+
+                if (opening.x > 0 &&
+                    CanContainWater(opening.x - 1, opening.y) &&
+                    waterLevels[opening.x - 1, opening.y] > Epsilon)
+                {
+                    fallDirections[opening.x, opening.y] |=
+                        WaterFallDirection.FromLeft;
+                }
+
+                if (opening.x < Width - 1 &&
+                    CanContainWater(opening.x + 1, opening.y) &&
+                    waterLevels[opening.x + 1, opening.y] > Epsilon)
+                {
+                    fallDirections[opening.x, opening.y] |=
+                        WaterFallDirection.FromRight;
+                }
+            }
+        }
+
+        public override string ToString()
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+
+            for (int y = Height - 1; y >= 0; y--)
+            {
+                for (int x = 0; x < Width; x++)
+                {
+                    stringBuilder.Append($"{this[x, y],5:F2}");
+                }
+                stringBuilder.Append("\n");
+            }
+            
+            return stringBuilder.ToString();
+        }
+
+        private bool CanFlowHorizontallyFrom(int x, int y)
+        {
+            if (y == 0 || !CanContainWater(x, y - 1))
+                return true;
+
+            return waterLevels[x, y - 1] >= 1f - Epsilon;
         }
     }
 }

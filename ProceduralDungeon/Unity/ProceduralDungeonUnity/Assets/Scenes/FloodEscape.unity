@@ -795,6 +795,20 @@ MonoBehaviour:
   diamondPrefab: {fileID: 7233151108711455934, guid: dc18fdc9eefaf26429727fb6a085c52c, type: 3}
   waterStepInterval: 0.03
   waterInflowPerStep: 0.1
+  useAsciiDebugMap: 0
+  asciiDebugMap: '#########
+
+    #.......#
+
+    ###.##.##
+
+    ###.##.##
+
+    ###.##.##
+
+    ###S##.##
+
+    ######.##'
 --- !u!4 &590359458
 Transform:
   m_ObjectHideFlags: 0
@@ -1237,6 +1251,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ProceduralDungeon::Gameplay.FloodEscape.WaterRenderer
   waterSprite: {fileID: -7430383670088101596, guid: 910fee9123c6a1a428e4d440993090f8, type: 3}
+  waterFallSprite: {fileID: -8957841179451617779, guid: ec28b589f9141f049b5e2a2935c51413, type: 3}
+  fallWidth: 0.15
 --- !u!4 &1987443155
 Transform:
   m_ObjectHideFlags: 0

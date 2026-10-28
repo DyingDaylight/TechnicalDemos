@@ -30,6 +30,11 @@ namespace Gameplay.FloodEscape
         [SerializeField] private float waterStepInterval = 0.1f;
         [SerializeField] private float waterInflowPerStep = 0.1f;
         
+#if UNITY_EDITOR
+        [SerializeField] private bool useAsciiDebugMap;
+        [SerializeField, TextArea(10, 25)] private string asciiDebugMap;
+#endif
+        
         private IReadOnlyDungeonMap map;
         
         private DungeonSequenceGenerator sequenceGenerator;
@@ -40,10 +45,23 @@ namespace Gameplay.FloodEscape
         private WaterSimulation simulation;
         private float waterTimer;
         
+#if UNITY_EDITOR
+        private int waterStepCount;
+#endif
+        
         public IReadOnlyDungeonMap Map => map;
         
         private void Start()
         {
+#if UNITY_EDITOR
+            if (useAsciiDebugMap)
+            {
+                var debugMap = DebugDungeonFactory.CreateFromAscii(asciiDebugMap, out Vector2Int? waterSource);
+                InitializeWaterDebugLevel(debugMap, waterSource);
+                return;
+            }
+#endif
+            
             DungeonSessionData sessionData = SessionData.ConsumeSessionData();
             
 #if UNITY_EDITOR
@@ -83,6 +101,10 @@ namespace Gameplay.FloodEscape
             {
                 waterTimer -= waterStepInterval;
                 simulation.Step();
+                
+#if UNITY_EDITOR
+                waterStepCount++;
+#endif
             }
 
             waterRenderer.Refresh();
@@ -201,14 +223,37 @@ namespace Gameplay.FloodEscape
             SpawnDoors(entrancePosition, exitPosition);
             SpawnDiamond(entrance, exit);
             
-            simulation = new WaterSimulation( gameplayMap, entrance.x, 0,
-                waterInflowPerStep);
+            simulation = new WaterSimulation(gameplayMap, entrance.x, 0, waterInflowPerStep);
 
             waterRenderer.Initialize(simulation);
             waterRenderer.Refresh();
 
             waterTimer = 0f;
         }
+        
+#if UNITY_EDITOR
+        private void InitializeWaterDebugLevel(IReadOnlyDungeonMap debugMap, Vector2Int? waterSource)
+        {
+            if (!waterSource.HasValue)
+                return;
+            
+            waterStepCount = 0;
+            
+            CleanupLevel();
+
+            map = debugMap;
+            DisplayMap(map);
+
+            playerController.gameObject.SetActive(false);
+
+            simulation = new WaterSimulation(map, waterSource.Value.x, waterSource.Value.y, waterInflowPerStep);
+
+            waterRenderer.Initialize(simulation);
+            waterRenderer.Refresh();
+
+            waterTimer = 0f;
+        }
+#endif
         
         private void CleanupLevel()
         {
@@ -239,5 +284,17 @@ namespace Gameplay.FloodEscape
             simulation = null;
             waterTimer = 0f;
         }
+        
+#if UNITY_EDITOR
+        private void OnGUI()
+        {
+            if (!useAsciiDebugMap)
+                return;
+
+            GUI.Label(
+                new Rect(600, 10, 200, 60),
+                $"Water step: {waterStepCount}");
+        }
+#endif
     }
 }

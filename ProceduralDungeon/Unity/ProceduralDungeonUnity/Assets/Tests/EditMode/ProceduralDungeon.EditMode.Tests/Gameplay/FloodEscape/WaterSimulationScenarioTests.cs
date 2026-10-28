@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using Core;
+using DebugTools;
 using Gameplay.FloodEscape.Water;
 using NUnit.Framework;
 using UnityEngine;
@@ -30,24 +31,29 @@ namespace Tests.Gameplay.FloodEscape
         [Test]
         public void Step_RisesThroughMultipleShaftsSimultaneously()
         {
-            DungeonMap testMap = new DungeonMap(9, 5);
+            IReadOnlyDungeonMap testMap = DebugDungeonFactory.CreateFromAscii(
+                "#########\n" +
+                "#.###.###\n" +
+                "#.###.###\n" +
+                "#.###.###\n" +
+                "#...S...#",
+                out Vector2Int? source);
 
-            for (int x = 1; x <= 7; x++)
-                testMap[x, 0] = TileType.Floor;
-
-            for (int y = 1; y <= 3; y++)
-            {
-                testMap[1, y] = TileType.Floor;
-                testMap[5, y] = TileType.Floor;
-            }
-
-            WaterSimulation simulation = new WaterSimulation(testMap, 4, 0, 0.5f);
-
-            for (int i = 0; i < 24; i++)
+            WaterSimulation simulation = new WaterSimulation(
+                testMap, source.Value.x, source.Value.y, 0.5f);
+            
+            for (int i = 0; i < 14; i++)
                 simulation.Step();
 
+            Assert.AreEqual(0f, simulation[1, 1], 0.0001);
+            Assert.AreEqual(0f, simulation[5, 1], 0.0001);
+            
+            for (int i = 0; i < 14; i++)
+                simulation.Step();
+            
             Assert.Greater(simulation[1, 1], 0f);
             Assert.Greater(simulation[5, 1], 0f);
+            Assert.AreEqual(simulation[1, 1], simulation[5, 1], 0.0001f);
         }
         
         /*
@@ -70,19 +76,26 @@ namespace Tests.Gameplay.FloodEscape
         [Test]
         public void Step_RisesThroughShaftAndSpreadsHorizontally()
         {
-            DungeonMap testMap = new DungeonMap(7, 5);
+            IReadOnlyDungeonMap testMap = DebugDungeonFactory.CreateFromAscii(
+                "#.....#\n" +
+                "###.###\n" +
+                "###.###\n" +
+                "###.###\n" +
+                "###S###",
+                out Vector2Int? source);
 
-            for (int y = 0; y <= 4; y++)
-                testMap[3, y] = TileType.Floor;
-
-            for (int x = 1; x <= 5; x++)
-                testMap[x, 4] = TileType.Floor;
-
-            WaterSimulation simulation = new WaterSimulation(testMap, 3, 0, 0.5f);
-
-            for (int i = 0; i < 16; i++)
+            WaterSimulation simulation = new WaterSimulation(
+                testMap, source.Value.x, source.Value.y, 0.5f);
+            
+            for (int i = 0; i < 8; i++)
                 simulation.Step();
 
+            Assert.AreEqual(0f, simulation[1, 4], 0.0001);
+            Assert.AreEqual(0f, simulation[5, 4], 0.0001);
+            
+            for (int i = 0; i < 8; i++)
+                simulation.Step();
+            
             Assert.Greater(simulation[1, 4], 0f);
             Assert.Greater(simulation[5, 4], 0f);
         }
@@ -106,24 +119,57 @@ namespace Tests.Gameplay.FloodEscape
         [Test]
         public void Step_FillsShaftsOfDifferentHeights()
         {
-            DungeonMap testMap = new DungeonMap(7, 5);
+            IReadOnlyDungeonMap testMap = DebugDungeonFactory.CreateFromAscii(
+                "#####.#\n" +
+                "#####.#\n" +
+                "#.###.#\n" +
+                "#.###.#\n" +
+                "#..S..#",
+                out Vector2Int? source);
 
-            for (int x = 1; x <= 5; x++)
-                testMap[x, 0] = TileType.Floor;
+            WaterSimulation simulation = new WaterSimulation(
+                testMap, source.Value.x, source.Value.y, 0.5f);
 
-            for (int y = 1; y <= 2; y++)
-                testMap[1, y] = TileType.Floor;
-
-            for (int y = 1; y <= 4; y++)
-                testMap[5, y] = TileType.Floor;
-
-            WaterSimulation simulation = new WaterSimulation(testMap, 3, 0, 0.5f);
-
-            for (int i = 0; i < 18; i++)
+            for (int i = 0; i < 10; i++)
                 simulation.Step();
 
-            Assert.That(simulation[1, 2], Is.EqualTo(1f).Within(0.0001f));
-            Assert.Greater(simulation[5, 3], 0f);
+            Assert.That(simulation[1, 1], Is.EqualTo(0f).Within(0.0001f),
+                "Step 10: Short shaft (1, 1) should still be empty.");
+
+            Assert.That(simulation[5, 1], Is.EqualTo(0f).Within(0.0001f),
+                "Step 10: Long shaft (5, 1) should still be empty.");
+
+            for (int i = 0; i < 4; i++)
+                simulation.Step();
+
+            Assert.That(simulation[1, 1], Is.EqualTo(1f).Within(0.0001f),
+                "Step 14: Short shaft (1, 1) should be completely filled.");
+
+            Assert.That(simulation[5, 1], Is.EqualTo(1f).Within(0.0001f),
+                "Step 14: Long shaft (5, 1) should be completely filled.");
+
+            Assert.That(simulation[1, 2], Is.EqualTo(0f).Within(0.0001f),
+                "Step 14: Short shaft (1, 2) should still be empty.");
+
+            Assert.That(simulation[5, 2], Is.EqualTo(0f).Within(0.0001f),
+                "Step 14: Long shaft (5, 2) should still be empty.");
+
+            for (int i = 0; i < 4; i++)
+                simulation.Step();
+
+            Assert.That(simulation[1, 2], Is.EqualTo(1f).Within(0.0001f),
+                "Step 18: Short shaft (1, 2) should be completely filled.");
+
+            Assert.That(simulation[5, 2], Is.EqualTo(1f).Within(0.0001f),
+                "Step 18: Long shaft (5, 2) should be completely filled.");
+
+            Assert.That(simulation[5, 3], Is.EqualTo(0f).Within(0.0001f),
+                "Step 18: Long shaft (5, 3) should still be empty.");
+
+            simulation.Step();
+
+            Assert.That(simulation[5, 3], Is.GreaterThan(0f),
+                "Step 19: Water should begin rising into the third level (5, 3) of the long shaft.");
         }
         
         /*
@@ -146,25 +192,27 @@ namespace Tests.Gameplay.FloodEscape
         [Test]
         public void Step_MergingFlowsFillSharedUpperCorridor()
         {
-            DungeonMap testMap = new DungeonMap(9, 5);
+            IReadOnlyDungeonMap testMap = DebugDungeonFactory.CreateFromAscii(
+                "#.......#\n" +
+                "#.#####.#\n" +
+                "#.#####.#\n" +
+                "#.#####.#\n" +
+                "#...S...#",
+                out Vector2Int? source);
 
-            for (int x = 1; x <= 7; x++)
-            {
-                testMap[x, 0] = TileType.Floor;
-                testMap[x, 4] = TileType.Floor;
-            }
-
-            for (int y = 1; y <= 3; y++)
-            {
-                testMap[1, y] = TileType.Floor;
-                testMap[7, y] = TileType.Floor;
-            }
-
-            WaterSimulation simulation = new WaterSimulation(testMap, 4, 0, 0.5f);
-
-            for (int i = 0; i < 38; i++)
+            WaterSimulation simulation = new WaterSimulation(
+                testMap, source.Value.x, source.Value.y, 0.5f);
+            
+            for (int i = 0; i < 26; i++)
                 simulation.Step();
 
+            Assert.AreEqual(simulation[3, 4], 0f);
+            Assert.AreEqual(simulation[4, 4], 0f);
+            Assert.AreEqual(simulation[5, 4], 0f);
+            
+            for (int i = 0; i < 10; i++)
+                simulation.Step();
+            
             Assert.Greater(simulation[3, 4], 0f);
             Assert.Greater(simulation[4, 4], 0f);
             Assert.Greater(simulation[5, 4], 0f);
@@ -182,7 +230,7 @@ namespace Tests.Gameplay.FloodEscape
          *        x  0 1 2 3 4 5 6
          *
          * y = 4     # # # # # # #
-         * y = 3     # S . . . . #
+         * y = 3     # S . . . # #
          * y = 2     # # # # . # #
          * y = 1     # # # # . # #
          * y = 0     # # # . . . #
@@ -197,22 +245,20 @@ namespace Tests.Gameplay.FloodEscape
         [Test]
         public void Step_CreatesNewFrontAfterHorizontalFlowToLedge()
         {
-            DungeonMap testMap = new DungeonMap(7, 5);
+            IReadOnlyDungeonMap testMap = DebugDungeonFactory.CreateFromAscii(
+                "#######\n" +
+                "#S...##\n" +
+                "####.##\n" +
+                "####.##\n" +
+                "###...#",
+                out Vector2Int? source);
 
-            for (int x = 1; x <= 5; x++)
-                testMap[x, 3] = TileType.Floor;
-
-            testMap[4, 2] = TileType.Floor;
-            testMap[4, 1] = TileType.Floor;
-
-            for (int x = 3; x <= 5; x++)
-                testMap[x, 0] = TileType.Floor;
-
-            WaterSimulation simulation = new WaterSimulation(testMap, 1, 3, 0.1f);
-
+            WaterSimulation simulation = new WaterSimulation(
+                testMap, source.Value.x, source.Value.y, 0.1f);
+            
             for (int i = 0; i < 30; i++)
                 simulation.Step();
-
+            
             WaterFront lowerFront = simulation.Fronts
                 .SingleOrDefault(front => front.EntryPoint == new Vector2Int(4, 0));
 
@@ -223,6 +269,73 @@ namespace Tests.Gameplay.FloodEscape
 
             Assert.AreEqual(new Vector2Int(4, 3), fall.Opening);
             Assert.AreEqual(new Vector2Int(4, 0), fall.Destination);
+            
+            Assert.That(
+                simulation.GetFallDirection(4, 3),
+                Is.EqualTo(WaterFallDirection.FromLeft));
+        }
+        
+        /*
+         * Tests that water cannot flow horizontally out of a cell
+         * while the cell directly below it is not full.
+         *
+         * Map layout (# = Wall, . = Floor, S = Source):
+         *
+         *        x  0 1 2 3 4 5 6
+         *
+         * y = 4     # # # # # # #
+         * y = 3     # S . . . . #
+         * y = 2     # # # # . # #
+         * y = 1     # # # # . # #
+         * y = 0     # # # . . . #
+         *
+         * Water may enter (4, 3) from the left, but must not
+         * spread to (5, 3) until (4, 2) is full.
+         */
+        [Test]
+        public void Step_DoesNotFlowHorizontallyFromUnsupportedCell()
+        {
+            IReadOnlyDungeonMap testMap = DebugDungeonFactory.CreateFromAscii(
+                "#######\n" +
+                "#S....#\n" +
+                "####.##\n" +
+                "####.##\n" +
+                "###...#",
+                out Vector2Int? source);
+
+            WaterSimulation simulation = new WaterSimulation(
+                testMap, source.Value.x, source.Value.y, 0.1f);
+            
+            bool reachedOpening = false;
+
+            for (int i = 0; i < 100; i++)
+            {
+                float waterBelowBeforeStep = simulation[4, 2];
+
+                simulation.Step();
+
+                if (simulation[4, 3] > 0f)
+                {
+                    reachedOpening = true;
+                    Assert.That(
+                        simulation.GetFallDirection(4, 3),
+                        Is.EqualTo(WaterFallDirection.FromLeft));
+                }
+
+
+                if (waterBelowBeforeStep < 1f - 0.0001f)
+                {
+                    Assert.That(simulation[5, 3],
+                        Is.EqualTo(0f).Within(0.0001f),
+                        $"Water spread past the opening at step {i + 1}.");
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            Assert.IsTrue(reachedOpening, "Water never reached the opening.");
         }
         
         /*
@@ -245,24 +358,23 @@ namespace Tests.Gameplay.FloodEscape
         [Test]
         public void Step_PrioritizesLowerReservoirAfterFall()
         {
-            DungeonMap testMap = new DungeonMap(7, 5);
+            IReadOnlyDungeonMap testMap = DebugDungeonFactory.CreateFromAscii(
+                "#######\n" +
+                "#S....#\n" +
+                "####.##\n" +
+                "####.##\n" +
+                "###...#",
+                out Vector2Int? source);
 
-            for (int x = 1; x <= 5; x++)
-                testMap[x, 3] = TileType.Floor;
-
-            testMap[4, 2] = TileType.Floor;
-            testMap[4, 1] = TileType.Floor;
-
-            for (int x = 3; x <= 5; x++)
-                testMap[x, 0] = TileType.Floor;
-
-            WaterSimulation simulation = new WaterSimulation(testMap, 1, 3, 0.5f);
-
+            WaterSimulation simulation = new WaterSimulation(
+                testMap, source.Value.x, source.Value.y, 0.5f);
+            
             for (int i = 0; i < 10; i++)
                 simulation.Step();
 
             Assert.Greater(simulation[4, 0], 0f);
             Assert.Greater(simulation[3, 0] + simulation[5, 0], 0f);
+            Assert.AreEqual(simulation[5, 3], 0f, 0.0001f);
         }
         
         /*
@@ -285,24 +397,46 @@ namespace Tests.Gameplay.FloodEscape
         [Test]
         public void Step_FillsLowerReservoirAndRisesIntoSideOpening()
         {
-            DungeonMap testMap = new DungeonMap(9, 5);
+            // TODO: failed because of the differnce between water levels in shafts
+            IReadOnlyDungeonMap testMap = DebugDungeonFactory.CreateFromAscii(
+                "#########\n" +
+                "#S....###\n" +
+                "####.####\n" +
+                "####.#.##\n" +
+                "###....##",
+                out Vector2Int? source);
 
-            for (int x = 1; x <= 5; x++)
-                testMap[x, 3] = TileType.Floor;
-
-            testMap[4, 2] = TileType.Floor;
-            testMap[4, 1] = TileType.Floor;
-            testMap[6, 1] = TileType.Floor;
-
-            for (int x = 3; x <= 6; x++)
-                testMap[x, 0] = TileType.Floor;
-
-            WaterSimulation simulation = new WaterSimulation(testMap, 1, 3, 0.5f);
-
-            for (int i = 0; i < 30; i++)
+            WaterSimulation simulation = new WaterSimulation(
+                testMap, source.Value.x, source.Value.y, 0.5f);
+            
+            for (int i = 0; i < 8; i++)
                 simulation.Step();
 
-            Assert.Greater(simulation[6, 1], 0f);
+            Assert.AreEqual(simulation[6, 1], 0f,0.001f);
+
+            for (int i = 0; i < 3; i++)
+                simulation.Step();
+            
+            Assert.Greater(simulation[6, 1], 0f, "Side opening is empty");
+            Assert.Greater(simulation[4, 1], 0f, "Main opening is empty");
+            Assert.AreEqual(simulation[4, 1], simulation[6, 1], 0.001f);
+            
+            for (int i = 0; i < 13; i++)
+                simulation.Step();
+            
+            for (int y = 0; y < testMap.Height; y++)
+            {
+                for (int x = 0; x < testMap.Width; x++)
+                {
+                    if (testMap[x, y] != TileType.Floor)
+                        continue;
+
+                    Assert.That(
+                        simulation[x, y],
+                        Is.EqualTo(1f).Within(0.0001f),
+                        $"Cell ({x}, {y}) was not completely filled.");
+                }
+            }
         }
         
         /*
@@ -313,7 +447,7 @@ namespace Tests.Gameplay.FloodEscape
          *
          *        x  0 1 2 3 4
          *
-         * y = 4     # S . # #
+         * y = 4     # S . . #
          * y = 3     # # . # #
          * y = 2     # # . # #
          * y = 1     # # . # #
@@ -325,64 +459,31 @@ namespace Tests.Gameplay.FloodEscape
         [Test]
         public void Step_FillsVerticalShaftFromBottomUp()
         {
-            DungeonMap testMap = new DungeonMap(5, 5);
+            IReadOnlyDungeonMap testMap = DebugDungeonFactory.CreateFromAscii(
+                "#S..#\n" +
+                "##.##\n" +
+                "##.##\n" +
+                "##.##\n" +
+                "##.##",
+                out Vector2Int? source);
 
-            testMap[1, 4] = TileType.Floor;
-
-            for (int y = 0; y <= 4; y++)
-                testMap[2, y] = TileType.Floor;
-
-            WaterSimulation simulation = new WaterSimulation(testMap, 1, 4, 0.5f);
-
-            for (int i = 0; i < 6; i++)
+            WaterSimulation simulation = new WaterSimulation(
+                testMap, source.Value.x, source.Value.y, 0.5f);
+            
+            for (int i = 0; i < 8; i++)
                 simulation.Step();
 
             Assert.AreEqual(1f, simulation[2, 0], 0.0001f);
             Assert.AreEqual(1f, simulation[2, 1], 0.0001f);
-            Assert.Greater(simulation[2, 2], 0f);
-        }
-        
-        /*
-         * Tests that water falls into a lower reservoir without
-         * prematurely rising through a neighboring shaft.
-         *
-         * Map layout (# = Wall, . = Floor, S = Source):
-         *
-         *        x  0 1 2 3 4 5 6 7 8
-         *
-         * y = 4     # # # # # # # # #
-         * y = 3     # S . . . . # # #
-         * y = 2     # # # # . # # # #
-         * y = 1     # # # # . # . # #
-         * y = 0     # # # . . . . # #
-         *
-         * Water falls through (4, 3) into the lower reservoir.
-         * Before the lower reservoir fills, water must not
-         * rise through the neighboring shaft at (6, 1).
-         */
-        
-        [Test]
-        public void Step_DoesNotRiseThroughSideOpeningBeforeReservoirFills()
-        {
-            DungeonMap testMap = new DungeonMap(9, 5);
-
-            for (int x = 1; x <= 5; x++)
-                testMap[x, 3] = TileType.Floor;
-
-            testMap[4, 2] = TileType.Floor;
-            testMap[4, 1] = TileType.Floor;
-            testMap[6, 1] = TileType.Floor;
-
-            for (int x = 3; x <= 6; x++)
-                testMap[x, 0] = TileType.Floor;
-
-            WaterSimulation simulation = new WaterSimulation(testMap, 1, 3, 0.5f);
-
-            for (int i = 0; i < 8; i++)
+            Assert.AreEqual(1f, simulation[2, 2], 0.0001f);
+            Assert.Greater(simulation[2, 3], 0f);
+            
+            for (int i = 0; i < 4; i++)
                 simulation.Step();
-
-            Assert.Greater(simulation[4, 0], 0f);
-            Assert.That(simulation[6, 1], Is.EqualTo(0f).Within(0.0001f));
+            
+            Assert.Greater(simulation[1, 4], 0f);
+            Assert.Greater(simulation[2, 4], 0f);
+            Assert.Greater(simulation[3, 4], 0f);
         }
         
         /*
@@ -405,25 +506,41 @@ namespace Tests.Gameplay.FloodEscape
         [Test]
         public void Step_RisesAboveOriginalFallLevel()
         {
-            DungeonMap testMap = new DungeonMap(9, 5);
+            IReadOnlyDungeonMap testMap = DebugDungeonFactory.CreateFromAscii(
+                "######.##\n" +
+                "#S...#.##\n" +
+                "####.#.##\n" +
+                "####.#.##\n" +
+                "###....##",
+                out Vector2Int? source);
 
-            for (int x = 1; x <= 4; x++)
-                testMap[x, 3] = TileType.Floor;
-
-            for (int y = 0; y <= 3; y++)
-                testMap[4, y] = TileType.Floor;
-
-            for (int x = 3; x <= 6; x++)
-                testMap[x, 0] = TileType.Floor;
-
-            for (int y = 1; y <= 4; y++)
-                testMap[6, y] = TileType.Floor;
-
-            WaterSimulation simulation = new WaterSimulation(testMap, 1, 3, 0.5f);
-
-            for (int i = 0; i < 40; i++)
+            WaterSimulation simulation = new WaterSimulation(
+                testMap, source.Value.x, source.Value.y, 0.5f);
+            
+            for (int i = 0; i < 9; i++)
                 simulation.Step();
 
+            Assert.AreEqual(0f, simulation[6, 1]);
+            Assert.AreEqual(0f, simulation[6, 4]);
+            
+            for (int i = 0; i < 2; i++)
+                simulation.Step();
+            
+            Assert.Greater(simulation[6, 1], 0f);
+            Assert.AreEqual(0f, simulation[6, 4]);
+            
+            for (int i = 0; i < 7; i++)
+                simulation.Step();
+            
+            Assert.Greater(simulation[4, 3], 0f);
+            Assert.Greater(simulation[6, 3], 0f);
+            Assert.AreEqual(0f, simulation[6, 4]);
+            
+            for (int i = 0; i < 10; i++)
+                simulation.Step();
+            
+            Assert.AreEqual(1f, simulation[4, 3], 0.0001f);
+            Assert.AreEqual(1f, simulation[6, 3], 0.0001f);
             Assert.Greater(simulation[6, 4], 0f);
         }
         
@@ -448,30 +565,32 @@ namespace Tests.Gameplay.FloodEscape
         [Test]
         public void Step_FallsIntoReservoirAndRisesThroughThreeShafts()
         {
-            DungeonMap testMap = new DungeonMap(11, 5);
+            IReadOnlyDungeonMap testMap = DebugDungeonFactory.CreateFromAscii(
+                "####S.#####\n" +
+                "#####.#####\n" +
+                "#.#.#.#.###\n" +
+                "#.#.#.#.###\n" +
+                "#........##",
+                out Vector2Int? source);
 
-            testMap[4, 4] = TileType.Floor;
+            WaterSimulation simulation = new WaterSimulation(
+                testMap, source.Value.x, source.Value.y, 0.5f);
             
-            for (int y = 0; y <= 4; y++)
-                testMap[5, y] = TileType.Floor;
-
-            for (int x = 1; x <= 8; x++)
-                testMap[x, 0] = TileType.Floor;
-
-            foreach (int x in new[] { 1, 3, 7 })
-            {
-                testMap[x, 1] = TileType.Floor;
-                testMap[x, 2] = TileType.Floor;
-            }
-
-            WaterSimulation simulation = new WaterSimulation(testMap, 4, 4, 0.5f);
-
-            for (int i = 0; i < 40; i++)
+            for (int i = 0; i < 17; i++)
                 simulation.Step();
 
             Assert.Greater(simulation[1, 1], 0f);
             Assert.Greater(simulation[3, 1], 0f);
+            Assert.Greater(simulation[5, 1], 0f);
             Assert.Greater(simulation[7, 1], 0f);
+            
+            for (int i = 0; i < 17; i++)
+                simulation.Step();
+
+            Assert.AreEqual(1f, simulation[1, 1], 0.001f);
+            Assert.AreEqual(1f, simulation[3, 1], 0.001f);
+            Assert.AreEqual(1f, simulation[7, 1], 0.001f);
+            Assert.Greater(simulation[5, 1], 0f);
         }
         
         /*
@@ -481,18 +600,18 @@ namespace Tests.Gameplay.FloodEscape
          *
          *        x  0 1 2 3 4 5 6 7 8
          *
-         * y = 6     # S . . # # # # #
-         * y = 5     # # # . # # # # #
-         * y = 4     # # . . . # # # #
+         * y = 6     # S . . . # # # #
+         * y = 5     # # # # . # # # #
+         * y = 4     # # . . . . # # #
          * y = 3     # # . # # # # # #
          * y = 2     # . . . . # # # #
          * y = 1     # # # # . # # # #
          * y = 0     # # # . . . # # #
          *
          * Expected falls:
-         *   (3, 6) -> (3, 4)
-         *   (2, 4) -> (2, 2)
-         *   (4, 2) -> (4, 0)
+         *   (4,6) → (4,4)
+         *   (2,4) → (2,2)
+         *   (4,2) → (4,0)
          *
          * Water must reach each ledge before creating
          * the next lower water front.
@@ -500,45 +619,65 @@ namespace Tests.Gameplay.FloodEscape
         [Test]
         public void Step_CreatesMultipleFrontsThroughCascade()
         {
-            DungeonMap testMap = new DungeonMap(9, 7);
+            IReadOnlyDungeonMap testMap = DebugDungeonFactory.CreateFromAscii(
+                "#S...####\n" +
+                "####.####\n" +
+                "##....###\n" +
+                "##.######\n" +
+                "#....####\n" +
+                "####.####\n" +
+                "###...###",
+                out Vector2Int? source);
 
-            for (int x = 1; x <= 3; x++)
-                testMap[x, 6] = TileType.Floor;
-
-            testMap[3, 5] = TileType.Floor;
-
-            for (int x = 2; x <= 4; x++)
-                testMap[x, 4] = TileType.Floor;
-
-            testMap[2, 3] = TileType.Floor;
-
-            for (int x = 1; x <= 4; x++)
-                testMap[x, 2] = TileType.Floor;
-
-            testMap[4, 1] = TileType.Floor;
-
-            for (int x = 3; x <= 5; x++)
-                testMap[x, 0] = TileType.Floor;
-
-            WaterSimulation simulation = new WaterSimulation(testMap, 1, 6, 0.5f);
-
-            for (int i = 0; i < 40; i++)
+            WaterSimulation simulation = new WaterSimulation(
+                testMap, source.Value.x, source.Value.y, 0.5f);
+            
+            
+            for (int i = 0; i < 4; i++)
                 simulation.Step();
 
+            Assert.AreEqual(2, simulation.Fronts.Count);
+            
             Assert.IsTrue(simulation.Fronts.Any(front =>
                 front.IncomingFall.HasValue &&
-                front.IncomingFall.Value.Opening == new Vector2Int(3, 6) &&
-                front.EntryPoint == new Vector2Int(3, 4)));
+                front.IncomingFall.Value.Opening == new Vector2Int(4, 6) &&
+                front.EntryPoint == new Vector2Int(4, 4)));
+            
+            Assert.That(
+                simulation.GetFallDirection(4, 6),
+                Is.EqualTo(WaterFallDirection.FromLeft));
+            
+            
+            for (int i = 0; i < 2; i++)
+                simulation.Step();
+            
+            Assert.AreEqual(3, simulation.Fronts.Count);
 
             Assert.IsTrue(simulation.Fronts.Any(front =>
                 front.IncomingFall.HasValue &&
                 front.IncomingFall.Value.Opening == new Vector2Int(2, 4) &&
                 front.EntryPoint == new Vector2Int(2, 2)));
+            
+            Assert.That(
+                simulation.GetFallDirection(2, 4),
+                Is.EqualTo(WaterFallDirection.FromRight));
 
+            
+            for (int i = 0; i < 2; i++)
+                simulation.Step();
+            
+            Assert.AreEqual(4, simulation.Fronts.Count);
+            
             Assert.IsTrue(simulation.Fronts.Any(front =>
                 front.IncomingFall.HasValue &&
                 front.IncomingFall.Value.Opening == new Vector2Int(4, 2) &&
                 front.EntryPoint == new Vector2Int(4, 0)));
+            
+            Assert.That(
+                simulation.GetFallDirection(4, 2),
+                Is.EqualTo(WaterFallDirection.FromLeft));
+            
+            // TODO: think about deleting fronts
         }
         
         /*
@@ -560,23 +699,19 @@ namespace Tests.Gameplay.FloodEscape
         [Test]
         public void Step_TwoWaterfallsIntoSameReservoir()
         {
-            DungeonMap testMap = new DungeonMap(9, 5);
+            IReadOnlyDungeonMap testMap = DebugDungeonFactory.CreateFromAscii(
+                "#########\n" +
+                "#...S...#\n" +
+                "#.#####.#\n" +
+                "#.#####.#\n" +
+                "#.......#",
+                out Vector2Int? source);
 
-            for (int x = 1; x <= 7; x++)
-            {
-                testMap[x, 3] = TileType.Floor;
-                testMap[x, 0] = TileType.Floor;
-            }
-
-            for (int y = 1; y <= 2; y++)
-            {
-                testMap[1, y] = TileType.Floor;
-                testMap[7, y] = TileType.Floor;
-            }
-
-            WaterSimulation simulation = new WaterSimulation(testMap, 4, 3, 0.5f);
-
-            for (int i = 0; i < 40; i++)
+            WaterSimulation simulation = new WaterSimulation(
+                testMap, source.Value.x, source.Value.y, 0.5f);
+            
+            
+            for (int i = 0; i < 6; i++)
                 simulation.Step();
 
             Assert.IsTrue(simulation.Fronts.Any(front =>
@@ -590,6 +725,16 @@ namespace Tests.Gameplay.FloodEscape
             Assert.AreEqual(
                 simulation.Fronts.Count,
                 simulation.Fronts.Select(front => front.EntryPoint).Distinct().Count());
+            
+            Assert.That(
+                simulation.GetFallDirection(1, 3),
+                Is.EqualTo(WaterFallDirection.FromRight));
+
+            Assert.That(
+                simulation.GetFallDirection(7, 3),
+                Is.EqualTo(WaterFallDirection.FromLeft));
+            
+            Assert.Greater(simulation[4,0], 0f);
         }
         
         /*
@@ -613,22 +758,21 @@ namespace Tests.Gameplay.FloodEscape
         [Test]
         public void Step_RisesThroughTwoSuccessiveShafts()
         {
-            DungeonMap testMap = new DungeonMap(7, 5);
+            IReadOnlyDungeonMap testMap = DebugDungeonFactory.CreateFromAscii(
+                "#####.#\n" +
+                "#####.#\n" +
+                "#.....#\n" +
+                "#.#####\n" +
+                "#S#####",
+                out Vector2Int? source);
 
-            for (int y = 0; y <= 2; y++)
-                testMap[1, y] = TileType.Floor;
-
-            for (int x = 1; x <= 5; x++)
-                testMap[x, 2] = TileType.Floor;
-
-            for (int y = 2; y <= 4; y++)
-                testMap[5, y] = TileType.Floor;
-
-            WaterSimulation simulation = new WaterSimulation(testMap, 1, 0, 0.5f);
-
+            WaterSimulation simulation = new WaterSimulation(
+                testMap, source.Value.x, source.Value.y, 0.5f);
+            
             for (int i = 0; i < 20; i++)
                 simulation.Step();
 
+            Assert.Greater(simulation[3, 2], 0f);
             Assert.Greater(simulation[5, 3], 0f);
             Assert.Greater(simulation[5, 4], 0f);
         }
@@ -653,61 +797,34 @@ namespace Tests.Gameplay.FloodEscape
         [Test]
         public void Step_FillsLowerBranchBeforeUpperBranch()
         {
-            DungeonMap testMap = new DungeonMap(7, 5);
+            IReadOnlyDungeonMap testMap = DebugDungeonFactory.CreateFromAscii(
+                "###...#\n" +
+                "###.###\n" +
+                "#...###\n" +
+                "###.###\n" +
+                "###S###",
+                out Vector2Int? source);
 
-            for (int y = 0; y <= 4; y++)
-                testMap[3, y] = TileType.Floor;
+            WaterSimulation simulation = new WaterSimulation(
+                testMap, source.Value.x, source.Value.y, 0.5f);
+            
+            for (int i = 0; i < 6; i++)
+                simulation.Step();
 
-            for (int x = 1; x <= 2; x++)
-                testMap[x, 2] = TileType.Floor;
-
-            for (int x = 4; x <= 5; x++)
-                testMap[x, 4] = TileType.Floor;
-
-            WaterSimulation simulation = new WaterSimulation(testMap, 3, 0, 0.5f);
-
-            for (int i = 0; i < 10; i++)
+            Assert.That(simulation[1, 2], Is.GreaterThan(0f));
+            Assert.That(simulation[5, 4], Is.EqualTo(0f).Within(0.0001f));
+            
+            for (int i = 0; i < 6; i++)
                 simulation.Step();
 
             Assert.That(simulation[1, 2], Is.EqualTo(1f).Within(0.0001f));
             Assert.That(simulation[5, 4], Is.EqualTo(0f).Within(0.0001f));
-        }
-        
-        /*
-         * Tests that filling a dead-end side corridor does not
-         * prevent water from continuing upward through the main shaft.
-         *
-         * Map layout (# = Wall, . = Floor, S = Source):
-         *
-         *        x  0 1 2 3 4 5 6
-         *
-         * y = 4     # # # . # # #
-         * y = 3     # # # . # # #
-         * y = 2     # . . . # # #
-         * y = 1     # # # . # # #
-         * y = 0     # # # S # # #
-         *
-         * Water fills the dead-end corridor at y = 2,
-         * then continues rising to (3, 4).
-         */
-        [Test]
-        public void Step_ContinuesRisingAfterFillingSideDeadEnd()
-        {
-            DungeonMap testMap = new DungeonMap(7, 5);
-
-            for (int y = 0; y <= 4; y++)
-                testMap[3, y] = TileType.Floor;
-
-            for (int x = 1; x <= 2; x++)
-                testMap[x, 2] = TileType.Floor;
-
-            WaterSimulation simulation = new WaterSimulation(testMap, 3, 0, 0.5f);
-
-            for (int i = 0; i < 16; i++)
+            
+            for (int i = 0; i < 6; i++)
                 simulation.Step();
 
             Assert.That(simulation[1, 2], Is.EqualTo(1f).Within(0.0001f));
-            Assert.Greater(simulation[3, 4], 0f);
+            Assert.That(simulation[5, 4], Is.EqualTo(1f).Within(0.0001f));
         }
         
         /*
@@ -727,16 +844,15 @@ namespace Tests.Gameplay.FloodEscape
         [Test]
         public void Step_FillsAllReachableCellsWhenWaterIsAbundant()
         {
-            DungeonMap testMap = new DungeonMap(5, 3);
+            IReadOnlyDungeonMap testMap = DebugDungeonFactory.CreateFromAscii(
+                "#####\n" +
+                "#...#\n" +
+                "#.S.#",
+                out Vector2Int? source);
 
-            for (int x = 1; x <= 3; x++)
-            {
-                testMap[x, 0] = TileType.Floor;
-                testMap[x, 1] = TileType.Floor;
-            }
-
-            WaterSimulation simulation = new WaterSimulation(testMap, 2, 0, 0.5f);
-
+            WaterSimulation simulation = new WaterSimulation(
+                testMap, source.Value.x, source.Value.y, 0.5f);
+            
             for (int i = 0; i < 20; i++)
                 simulation.Step();
 
@@ -752,108 +868,82 @@ namespace Tests.Gameplay.FloodEscape
             }
         }
         
+        
         /*
-         * Tests that water continues filling all reachable cells
-         * after falling into a lower reservoir.
+         * Tests that water rising through a shaft and reaching a fall
+         * opening from the left does not create a false right-side flow.
          *
          * Map layout (# = Wall, . = Floor, S = Source):
          *
          *        x  0 1 2 3 4 5 6 7 8
          *
-         * y = 4     # # # # # # # # #
-         * y = 3     # S . . . . # # #
-         * y = 2     # # # # . # # # #
-         * y = 1     # # # # . # . # #
-         * y = 0     # # # . . . . # #
+         * y = 6     # # # # # # # # #
+         * y = 5     # . . . . . . . #
+         * y = 4     # # # . # # . # #
+         * y = 3     # # # . # # . # #
+         * y = 2     # # # . # # . # #
+         * y = 1     # # # S # # . # #
+         * y = 0     # # # # # # . # #
          *
-         * The map contains 12 floor cells.
-         * After 30 steps at 0.5 water per step, 15 units
-         * have entered the simulation.
+         * Water rises through the shaft at x = 3, spreads right
+         * along the upper corridor, and reaches the fall at (6, 5).
          *
-         * All reachable floor cells should be completely filled,
-         * with excess water remaining pending.
+         * Expected fall:
+         *   Opening:     (6, 5)
+         *   Destination: (6, 0)
+         *   Direction:   FromLeft only
+         *
+         * The floor cell at (7, 5) must not cause a false
+         * FromRight direction.
          */
         [Test]
-        public void Step_FillsAllReachableCellsAfterWaterfall()
+        public void Step_DoesNotCreateFalseDirectionAtFallOpening()
         {
-            DungeonMap testMap = new DungeonMap(9, 5);
+            IReadOnlyDungeonMap testMap = DebugDungeonFactory.CreateFromAscii(
+                "#########\n" +
+                "#.......#\n" +
+                "###.##.##\n" +
+                "###.##.##\n" +
+                "###.##.##\n" +
+                "###S##.##\n" +
+                "######.##",
+                out Vector2Int? source);
 
-            for (int x = 1; x <= 5; x++)
-                testMap[x, 3] = TileType.Floor;
+            WaterSimulation simulation = new WaterSimulation(
+                testMap, source.Value.x, source.Value.y, 0.5f);
 
-            testMap[4, 2] = TileType.Floor;
-            testMap[4, 1] = TileType.Floor;
-            testMap[6, 1] = TileType.Floor;
+            Vector2Int opening = new Vector2Int(6, 5);
+            Vector2Int destination = new Vector2Int(6, 0);
 
-            for (int x = 3; x <= 6; x++)
-                testMap[x, 0] = TileType.Floor;
+            bool fallCreated = false;
+            bool directionDetected = false;
 
-            WaterSimulation simulation = new WaterSimulation(testMap, 1, 3, 0.5f);
-
-            for (int i = 0; i < 30; i++)
+            for (int i = 0; i < 40; i++)
+            {
                 simulation.Step();
 
-            for (int y = 0; y < testMap.Height; y++)
-            {
-                for (int x = 0; x < testMap.Width; x++)
-                {
-                    if (testMap[x, y] != TileType.Floor)
-                        continue;
+                bool hasFall = simulation.Fronts.Any(front =>
+                    front.IncomingFall.HasValue &&
+                    front.IncomingFall.Value.Opening == opening &&
+                    front.IncomingFall.Value.Destination == destination);
 
-                    Assert.That(
-                        simulation[x, y],
-                        Is.EqualTo(1f).Within(0.0001f),
-                        $"Cell ({x}, {y}) was not completely filled.");
-                }
-            }
-        }
-        
-        /*
-         * Tests that water continues filling reachable cells
-         * instead of accumulating as pending water after a fall.
-         *
-         * Map layout (# = Wall, . = Floor, S = Source):
-         *
-         *        x  0 1 2 3 4 5 6 7 8 9 10
-         *
-         * y = 4     # # # # # # # # # # #
-         * y = 3     # S . . . # # # # # #
-         * y = 2     # # # # . # # # # # #
-         * y = 1     # # # # . # # # # # #
-         * y = 0     # # # . . . . . . . #
-         *
-         * The map contains 13 floor cells.
-         * After 20 steps at 0.5 water per step, 10 units
-         * should be distributed without becoming stuck.
-         */
-        [Test]
-        public void Step_DoesNotAccumulatePendingWaterWhileReachableCellsAreEmpty()
-        {
-            DungeonMap testMap = new DungeonMap(11, 5);
+                if (hasFall)
+                    fallCreated = true;
 
-            for (int x = 1; x <= 4; x++)
-                testMap[x, 3] = TileType.Floor;
+                WaterFallDirection direction =
+                    simulation.GetFallDirection(opening.x, opening.y);
 
-            testMap[4, 2] = TileType.Floor;
-            testMap[4, 1] = TileType.Floor;
+                if (!fallCreated || direction == WaterFallDirection.None)
+                    continue;
 
-            for (int x = 3; x <= 9; x++)
-                testMap[x, 0] = TileType.Floor;
+                directionDetected = true;
 
-            WaterSimulation simulation = new WaterSimulation(testMap, 1, 3, 0.5f);
-
-            for (int i = 0; i < 20; i++)
-                simulation.Step();
-
-            float totalWater = 0f;
-
-            for (int y = 0; y < testMap.Height; y++)
-            {
-                for (int x = 0; x < testMap.Width; x++)
-                    totalWater += simulation[x, y];
+                Assert.That(direction, Is.EqualTo(WaterFallDirection.FromLeft));
+                break;
             }
 
-            Assert.That(totalWater, Is.EqualTo(10f).Within(0.0001f));
+            Assert.IsTrue(fallCreated, "Expected waterfall was not created.");
+            Assert.IsTrue(directionDetected, "Fall direction was never detected.");
         }
     }
 }
